@@ -1,0 +1,153 @@
+
+QWidget
+{
+    color: #C2C5CC;
+    background-color: rgb(45, 47, 45);
+    selection-background-color: #2a526c;
+    selection-color: #f5f5f5;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QAbstractSpinBox:focus
+{
+    border: 1px solid #45a5d5;
+}
+
+QAbstractSpinBox
+{
+    border: 1px solid rgb(58, 62, 63);
+}
+
+
+QLineEdit
+{
+    background-color: rgb(58, 62, 63);
+    selection-background-color: #0E567B;
+    border: 1px solid #515255;
+    color: #C2C5CC;
+}
+
+
+QScrollBar:vertical {
+    background: rgb(58, 62, 63);
+    width: 18px;
+}
+ 
+QScrollBar:horizontal {
+    background: rgb(58, 62, 63);
+    height: 18px;
+}
+ 
+QScrollBar::add-page:vertical, 
+QScrollBar::add-page:horizontal, 
+QScrollBar::sub-page:vertical,
+QScrollBar::sub-page:horizontal {
+	border: 0px;
+	background: rgb(58, 62, 63);
+	margin: 0px;
+}
+
+QHeaderView::section {
+	background-color: rgb(58, 62, 63);
+}
+
+
+/* group box */
+QGroupBox {
+    border: 1px solid rgb(81, 82, 85);
+	margin-top: 10px;
+	padding-top: 7px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 7px;
+    padding: 2px 2px 2px 2px;
+}
+
+
+QMenuBar::item:pressed {
+    background: #2a526c;
+}
+
+ 
+/* background for main window */
+ads--ContainerWidget,
+ContainerWidget
+{
+	background: rgb(60, 61, 59); 
+}
+
+/* background for splitter */
+ads--ContainerWidget QSplitter::handle,
+ContainerWidget QSplitter::handle
+{
+	background: rgb(60, 61, 59);
+}
+
+
+/* border for every container widget for ADS */
+/*
+ads--SectionWidget,
+SectionWidget
+{
+	border: 1px solid palette(light);
+}
+*/
+
+/*
+ads--SectionWidget #tabsMenuButton::menu-indicator,
+SectionWidget #tabsMenuButton::menu-indicator
+{
+	image: none;
+}
+*/
+/*
+ads--SectionTitleWidget,
+SectionTitleWidget
+{
+	background: palette(window);
+	border-color: palette(light);
+	border-style: solid;
+	padding: 0 2px;
+}
+*/
+/*
+ads--SectionTitleWidget[activeTab="true"],
+SectionTitleWidget[activeTab="true"]
+{
+	background: palette(window);
+}
+*/
+/*
+ads--SectionTitleWidget[activeTab="true"] QLabel,
+SectionTitleWidget[activeTab="true"] QLabel
+{
+	color: palette(window);
+}
+*/
+
+/*
+ads--SectionTitleWidget QLabel,
+SectionTitleWidget QLabel
+{
+	color: palette(light);
+}
+*/
+/*
+
+ads--FloatingWidget ads--SectionTitleWidget QLabel,
+FloatingWidget SectionTitleWidget QLabel
+{
+	color: palette(foreground);
+}
+*/
+/*
+ads--SectionContentWidget,
+SectionContentWidget
+{
+	background: palette(light);
+	border-color: palette(light);
+	border-style: solid;
+	border-width: 1px 0 0 0;
+}
+*/

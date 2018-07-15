@@ -1,0 +1,17 @@
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QAbstractSpinBox:focus
+{
+    border: 1px solid #45a5d5;
+}
+
+QGroupBox {
+    border: 1px solid rgb(81, 82, 85);
+	margin-top: 10px;
+	padding-top: 7px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 7px;
+    padding: 2px 2px 2px 2px;
+}

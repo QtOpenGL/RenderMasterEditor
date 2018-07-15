@@ -1,0 +1,6 @@
+/debug/
+/release/
+*.dat
+*.obj
+*.qmake.stash
+moc_*
