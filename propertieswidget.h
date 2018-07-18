@@ -13,7 +13,7 @@ namespace Ui {
 class PropertiesWidget;
 }
 
-class PropertiesWidget : public QWidget, RENDER_MASTER::IPositionEventSubscriber
+class PropertiesWidget : public QWidget, RENDER_MASTER::IPositionEventSubscriber, RENDER_MASTER::IRotationEventSubscriber
 {
     Q_OBJECT
 
@@ -29,7 +29,8 @@ protected:
 
 public:
 	void SetGameObject(RENDER_MASTER::IGameObject *go);
-    API Call(OUT vec3 *pPos) override;
+	API Call(OUT vec3 *pos) override;
+	API Call(OUT quat *rot) override;
 
 private slots:
 	void onSceneTreeInited(SceneTreeWidget*);
@@ -44,6 +45,7 @@ private:
 	void subscribeToGO(RENDER_MASTER::IGameObject *go);
 
 	void connectPosition(MySpinBox *w, int xyz_offset);
+	void connectRotation(MySpinBox *w, int xyz_offset);
 };
 
 #endif // PROPERTIESWIDGET_H

@@ -121,6 +121,18 @@ API PropertiesWidget::Call(vec3 *pPos)
 	return S_OK;
 }
 
+API PropertiesWidget::Call(quat *rot)
+{
+	if (_go)
+	{
+		vec3 eulerAngles = rot->ToEuler();
+		ui->rot_x_sb->setValue((double)eulerAngles.x);
+		ui->rot_y_sb->setValue((double)eulerAngles.y);
+		ui->rot_z_sb->setValue((double)eulerAngles.z);
+	}
+	return S_OK;
+}
+
 void PropertiesWidget::onSceneTreeInited(SceneTreeWidget *sceneTree)
 {
 	// selection changed
@@ -139,7 +151,11 @@ void PropertiesWidget::unsubscribeFromPreviousGO()
 	{
 		IPositionEvent *ev;
 		_go->GetPositionEv(&ev);
-		ev->Unsubscribe(this);
+		ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
+		IRotationEvent *rotEv;
+		_go->GetRotationEv(&rotEv);
+		rotEv->Unsubscribe(dynamic_cast<IRotationEventSubscriber*>(this));
 
 		for (auto& conn : _connections)
 			QObject::disconnect(conn);
@@ -158,7 +174,11 @@ void PropertiesWidget::subscribeToGO(IGameObject *go)
 {
 	IPositionEvent *ev;
 	go->GetPositionEv(&ev);
-	ev->Subscribe(this);
+	ev->Subscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
+	IRotationEvent *rotEv;
+	go->GetRotationEv(&rotEv);
+	rotEv->Subscribe(dynamic_cast<IRotationEventSubscriber*>(this));
 
 	auto conn = connect(ui->lineEdit, &QLineEdit::editingFinished, [=]()
 	{
@@ -174,6 +194,10 @@ void PropertiesWidget::subscribeToGO(IGameObject *go)
 	connectPosition(ui->pos_x_sb, 0);
 	connectPosition(ui->pos_y_sb, 1);
 	connectPosition(ui->pos_z_sb, 2);
+
+	connectRotation(ui->rot_x_sb, 0);
+	connectRotation(ui->rot_y_sb, 1);
+	connectRotation(ui->rot_z_sb, 2);
 }
 
 void PropertiesWidget::connectPosition(MySpinBox *w, int xyz_offset)
@@ -184,13 +208,37 @@ void PropertiesWidget::connectPosition(MySpinBox *w, int xyz_offset)
 		{
 			vec3 pos;
 			_go->GetPosition(&pos);
-			float new_x;
-			if (getFloatSpinbox(newValue, new_x))
-				if (!Approximately(pos.x, new_x))
+			float newValueFloat;
+			if (getFloatSpinbox(newValue, newValueFloat))
+				if (!Approximately(pos.x, newValueFloat))
 				{
-					pos.xyz[xyz_offset] = new_x;
+					pos.xyz[xyz_offset] = newValueFloat;
 					_go->SetPosition(&pos);
 				}
+		}
+	});
+	_connections.emplace_back(conn);
+}
+
+void PropertiesWidget::connectRotation(MySpinBox *w, int xyz_offset)
+{
+	auto conn = connect(w, QOverload<const QString&>::of(&QDoubleSpinBox::valueChanged), [=](const QString &newValueStr)
+	{
+		if (_go)
+		{
+			quat rot;
+			_go->GetRotation(&rot);
+			float newValueFloat;
+			if (getFloatSpinbox(newValueStr, newValueFloat))
+			{
+				vec3 euler = rot.ToEuler();
+				if (!Approximately(euler.xyz[xyz_offset], newValueFloat))
+				{
+					euler.xyz[xyz_offset] = newValueFloat;
+					quat newRot = quat(euler);
+					_go->SetRotation(&newRot);
+				}
+			}
 		}
 	});
 	_connections.emplace_back(conn);
