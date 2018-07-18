@@ -4,3 +4,4 @@
 *.obj
 *.qmake.stash
 moc_*
+*.pro.user

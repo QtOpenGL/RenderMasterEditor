@@ -64,7 +64,7 @@ RESOURCES += \
 DISTFILES += \
     render master2.png
 
-INCLUDEPATH += "..\EngineCom\include"
+INCLUDEPATH += "$$PWD/../RenderMaster/include"
 
 win32:LIBS += -lOle32
 
@@ -81,4 +81,4 @@ INCLUDEPATH += $$PWD/advanceddockingsystemm/include
 DEPENDPATH += $$PWD/advanceddockingsystem/include
 
 # force relink
-PRE_TARGETDEPS += advanceddockingsystem/debug/AdvancedDockingSystem.lib
+PRE_TARGETDEPS += $$PWD/advanceddockingsystem/debug/AdvancedDockingSystem.lib
