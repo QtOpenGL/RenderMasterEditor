@@ -57,26 +57,29 @@ int main(int argc, char *argv[])
     QWidget *render_view = w->findChild<QWidget*>("D3D11Widget");
     HWND h = (HWND)render_view->winId();
 
-    pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::OPENGL45, "C:\\Users\\Konstantin\\Documents\\RenderMasterProject1", &h);
+	auto rm_inited =pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::OPENGL45, "resources", &h);
 
-    eng->Init(pCore);
+	if (SUCCEEDED(rm_inited))
+	{
+		eng->Init(pCore);
 
-    IResourceManager *pResManager;
-    pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
+		IResourceManager *pResManager;
+		pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-    IModel *pModel;
-    pResManager->LoadModel(&pModel, "box.fbx", nullptr);
-
+		IModel *pModel;
+		pResManager->LoadModel(&pModel, "box.fbx", nullptr);
+	}else
+		qWarning() << "Failed to initialize RenderMaster";
 
     int ret = a.exec();
 
-    eng->BeforeClose();
-
-    if (pCore != nullptr)
+	if (SUCCEEDED(rm_inited))
     {
+		eng->BeforeClose();
         pCore->CloseEngine();
-        FreeCore(pCore);
-    }
+	}
+
+	FreeCore(pCore);
 
     delete eng;
     delete editor;
