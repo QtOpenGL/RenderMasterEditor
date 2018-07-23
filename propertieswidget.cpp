@@ -123,7 +123,7 @@ API PropertiesWidget::Call(vec3 *pPos)
 
 API PropertiesWidget::Call(quat *rot)
 {
-	if (_go)
+	if (_go && !block)
 	{
 		vec3 eulerAngles = rot->ToEuler();
 		ui->rot_x_sb->setValue((double)eulerAngles.x);
@@ -220,24 +220,46 @@ void PropertiesWidget::connectPosition(MySpinBox *w, int xyz_offset)
 	_connections.emplace_back(conn);
 }
 
+void PropertiesWidget::fmod360(MySpinBox *w)
+{
+	signalBlocked = true;
+	float f = w->value();
+	float f1 = fmod(f, 360.0f);
+	if (f != f1)
+		w->setValue(f1);
+	signalBlocked = false;
+}
+
 void PropertiesWidget::connectRotation(MySpinBox *w, int xyz_offset)
 {
-	auto conn = connect(w, QOverload<const QString&>::of(&QDoubleSpinBox::valueChanged), [=](const QString &newValueStr)
+	auto conn = connect(w, QOverload<const QString&>::of(&QDoubleSpinBox::valueChanged), [&](const QString &newValueStr)
 	{
-		if (_go)
+		if (_go && !signalBlocked)
 		{
 			quat rot;
 			_go->GetRotation(&rot);
 			float newValueFloat;
 			if (getFloatSpinbox(newValueStr, newValueFloat))
 			{
-				vec3 euler = rot.ToEuler();
-				if (!Approximately(euler.xyz[xyz_offset], newValueFloat))
-				{
-					euler.xyz[xyz_offset] = newValueFloat;
-					quat newRot = quat(euler);
-					_go->SetRotation(&newRot);
-				}
+				// quat -> euler
+				//vec3 euler = rot.ToEuler();
+
+				//qDebug() << "X=" << euler.x << " Y=" << euler.y;
+				//euler.xyz[xyz_offset] = newValueFloat;
+
+				//fmod360(w);
+
+				float x = ui->rot_x_sb->value();
+				float y = ui->rot_y_sb->value();
+				float z = ui->rot_z_sb->value();
+
+				vec3 euler = {x, y, z};
+
+				// euler -> quat
+				quat newRot = quat(euler);
+				block = true;
+				_go->SetRotation(&newRot);
+				block = false;
 			}
 		}
 	});

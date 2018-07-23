@@ -77,8 +77,8 @@ CONFIG( debug, debug|release ) {
 }
 
 
-INCLUDEPATH += $$PWD/../Qt-Advanced-Docking-System/AdvancedDockingSystem/include
-DEPENDPATH += $$PWD/../Qt-Advanced-Docking-System/AdvancedDockingSystem/include
+INCLUDEPATH += $$PWD/advanceddockingsystemm/include
+DEPENDPATH += $$PWD/advanceddockingsystem/include
 
 # force relink
 PRE_TARGETDEPS += advanceddockingsystem/debug/AdvancedDockingSystem.lib

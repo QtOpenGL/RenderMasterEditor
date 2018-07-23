@@ -46,6 +46,11 @@ private:
 
 	void connectPosition(MySpinBox *w, int xyz_offset);
 	void connectRotation(MySpinBox *w, int xyz_offset);
+	void fmod360(MySpinBox *w);
+
+private:
+	bool block{false};
+	bool signalBlocked{false};
 };
 
 #endif // PROPERTIESWIDGET_H
