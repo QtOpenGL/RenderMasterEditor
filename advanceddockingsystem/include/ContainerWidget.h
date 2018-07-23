@@ -10,11 +10,11 @@ class QSplitter;
 class QMenu;
 class QGridLayout;
 
-#include "ads/API.h"
-#include "ads/Internal.h"
-#include "ads/SectionContent.h"
-#include "ads/FloatingWidget.h"
-#include "ads/Serialization.h"
+#include "advanceddockingsystem/include/API.h"
+#include "advanceddockingsystem/include/Internal.h"
+#include "advanceddockingsystem/include/SectionContent.h"
+#include "advanceddockingsystem/include/FloatingWidget.h"
+#include "advanceddockingsystem/include/Serialization.h"
 
 ADS_NAMESPACE_BEGIN
 class SectionWidget;

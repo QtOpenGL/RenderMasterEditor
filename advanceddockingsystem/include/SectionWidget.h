@@ -11,9 +11,9 @@ class QStackedLayout;
 class QPushButton;
 class QMenu;
 
-#include "ads/API.h"
-#include "ads/Internal.h"
-#include "ads/SectionContent.h"
+#include "advanceddockingsystem/include//API.h"
+#include "advanceddockingsystem/include//Internal.h"
+#include "advanceddockingsystem/include//SectionContent.h"
 
 ADS_NAMESPACE_BEGIN
 class ContainerWidget;

@@ -5,9 +5,9 @@
 
 #include "dialog.h"
 
-#include "ads/API.h"
-#include "ads/ContainerWidget.h"
-#include "ads/SectionContent.h"
+#include "advanceddockingsystem/include/API.h"
+#include "advanceddockingsystem/include/ContainerWidget.h"
+#include "advanceddockingsystem/include/SectionContent.h"
 
 class TreeModel;
 

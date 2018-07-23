@@ -7,7 +7,7 @@
 #include <QDataStream>
 #include <QBuffer>
 
-#include "ads/API.h"
+#include "advanceddockingsystem/include/API.h"
 
 ADS_NAMESPACE_SER_BEGIN
 

@@ -77,8 +77,8 @@ CONFIG( debug, debug|release ) {
 }
 
 
-INCLUDEPATH += $$PWD/advanceddockingsystemm/include
-DEPENDPATH += $$PWD/advanceddockingsystem/include
+INCLUDEPATH += "$$PWD/advanceddockingsystemm/include"
+DEPENDPATH += "$$PWD/advanceddockingsystem/include"
 
 # force relink
 PRE_TARGETDEPS += $$PWD/advanceddockingsystem/debug/AdvancedDockingSystem.lib

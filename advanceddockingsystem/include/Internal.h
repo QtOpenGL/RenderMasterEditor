@@ -4,7 +4,7 @@
 #include <QSharedPointer>
 #include <QWeakPointer>
 
-#include "ads/API.h"
+#include "advanceddockingsystem/include/API.h"
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #else

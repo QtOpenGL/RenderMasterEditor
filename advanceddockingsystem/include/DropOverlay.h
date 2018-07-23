@@ -7,7 +7,7 @@
 #include <QFrame>
 class QGridLayout;
 
-#include "ads/API.h"
+#include "advanceddockingsystem/include/API.h"
 
 ADS_NAMESPACE_BEGIN
 class DropOverlayCross;

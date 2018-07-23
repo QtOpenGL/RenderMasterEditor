@@ -16,8 +16,8 @@
 #include "propertieswidget.h"
 #include "editorglobal.h"
 
-#include "ads/SectionWidget.h"
-#include "ads/DropOverlay.h"
+#include "advanceddockingsystem/include/SectionWidget.h"
+#include "advanceddockingsystem/include/DropOverlay.h"
 
 extern EditorGlobal *editor;
 
