@@ -70,10 +70,10 @@ win32:LIBS += -lOle32
 
 CONFIG( debug, debug|release ) {
     # debug
-    win32:LIBS += -L./advanceddockingsystem/debug -lAdvancedDockingSystem
+    win32:LIBS += "$$PWD/advanceddockingsystem/debug/AdvancedDockingSystem.lib"
 } else {
     # release
-    win32:LIBS += -L./advanceddockingsystem/release -lAdvancedDockingSystem
+    win32:LIBS += "$$PWD/advanceddockingsystem/release/AdvancedDockingSystem.lib"
 }
 
 
