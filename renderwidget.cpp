@@ -176,10 +176,10 @@ void RenderWidget::onRender()
     {
         pCore->RenderFrame(&h, pCamera);
 
-		float aspect = (float)rect().width() / rect().height();
-
 		eng->getCoreRender()->PushStates();
 		{
+			float aspect = (float)rect().width() / rect().height();
+
 			mat4 VP;
 			pCamera->GetViewProjectionMatrix(&VP, aspect);
 
