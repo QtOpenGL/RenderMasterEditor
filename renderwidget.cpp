@@ -3,6 +3,7 @@
 #include "EngineGlobal.h"
 #include "Engine.h"
 #include <QMouseEvent>
+#include <QDebug>
 
 using namespace RENDER_MASTER;
 
@@ -115,13 +116,79 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_E) {key_e = 0; }
 }
 
+void RenderWidget::_draw_axes(const mat4& VP)
+{
+	INPUT_ATTRUBUTE a;
+	_pAxesMesh->GetAttributes(&a);
+
+	ICoreShader *shader{nullptr};
+	ShaderRequirement req = { a, false };
+	pRender->GetShader(&shader, &req);
+	if (!shader) return;
+	pCoreRender->SetShader(shader);
+
+	float z = VP.el_2D[2][3];
+
+	uint w = rect().height();
+
+	mat4 M;
+	M.el_2D[0][0] = 80.0f * z / w;
+	M.el_2D[1][1] = 80.0f * z / w;
+	M.el_2D[2][2] = 80.0f * z / w;
+
+	mat4 MVP = VP * M;
+
+	pCoreRender->SetUniform("MVP", &MVP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
+
+	vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
+
+	pCoreRender->SetDepthState(false);
+
+	pCoreRender->Draw(_pAxesMesh);
+	pCoreRender->Draw(_pAxesArrowMesh);
+}
+
+void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
+{
+	INPUT_ATTRUBUTE a;
+	_pAxesMesh->GetAttributes(&a);
+
+	ICoreShader *shader{nullptr};
+	ShaderRequirement req = { a, false };
+	pRender->GetShader(&shader, &req);
+	if (!shader) return;
+	pCoreRender->SetShader(shader);
+
+	pCoreRender->SetUniform("MVP", &VP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
+
+	vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
+
+	pCoreRender->SetDepthState(true);
+
+	pCoreRender->Draw(_pGridMesh);
+}
 
 void RenderWidget::onRender()
 {
     if (pCore)
     {
         pCore->RenderFrame(&h, pCamera);
-        //pCore->Log("RenderWidget::onRender()", RENDER_MASTER::LOG_TYPE::NORMAL);
+
+		float aspect = (float)rect().width() / rect().height();
+
+		eng->getCoreRender()->PushStates();
+		{
+			mat4 VP;
+			pCamera->GetViewProjectionMatrix(&VP, aspect);
+
+			_draw_grid(VP);
+			_draw_axes(VP);
+		}
+		eng->getCoreRender()->PopStates();
+
+		pCoreRender->SwapBuffers();
     }
 }
 
@@ -181,10 +248,16 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 {
     pCore = pCoreIn;
 
-    pCore->GetSubSystem((ISubSystem **)&pCoreRender, RENDER_MASTER::SUBSYSTEM_TYPE::CORE_RENDER);
-    pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
+	pCore->GetSubSystem((ISubSystem **)&pCoreRender, RENDER_MASTER::SUBSYSTEM_TYPE::CORE_RENDER);
+	pCore->GetSubSystem((ISubSystem **)&pRender, RENDER_MASTER::SUBSYSTEM_TYPE::RENDER);
+	pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
+	pCore->GetSubSystem((ISubSystem **)&pResMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
     pSceneManager->GetDefaultCamera(&pCamera);
+
+	pResMan->GetDefaultResource((IResource**)&_pAxesMesh, DEFAULT_RES_TYPE::AXES);
+	pResMan->GetDefaultResource((IResource**)&_pAxesArrowMesh, DEFAULT_RES_TYPE::AXES_ARROWS);
+	pResMan->GetDefaultResource((IResource**)&_pGridMesh, DEFAULT_RES_TYPE::GRID);
 }
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)

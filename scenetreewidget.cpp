@@ -366,18 +366,30 @@ void SceneTreeWidget::_selectionChanged(const QItemSelection &selected, const QI
 {
 	if (selected.indexes().size())
 	{
-		//QModelIndex& index = selected.indexes().first();
-		//if (!index.isValid())
+		qDebug() << "selected" << selected.size() << "deselected" << deselected.size();
+
+		const QModelIndex& index = selected.indexes().at(0);
+		if (index.isValid())
+		{
+			IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
+			if (go)
+			{
+				selectionChanged(go);
+			}
+		}
+		//else
 		//{
-		//	selectionChanged(nullptr);
-		//}else
-		//{
-		//	IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
+			//IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
 		//	selectionChanged(go);
 		//}
-	}else
-		selectionChanged(nullptr);
 
+
+	}else
+	{
+		selectionChanged(nullptr);
+		auto *selectionModel = ui->treeView->selectionModel();
+		selectionModel->clear();
+	}
 }
 
 void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIndex &previous)
@@ -385,6 +397,8 @@ void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIn
 	if (!current.isValid())
 	{
 		selectionChanged(nullptr);
+		auto *selectionModel = ui->treeView->selectionModel();
+		selectionModel->clear();
 	}else
 	{
 		IGameObject *go = static_cast<IGameObject*>( current.internalPointer() );

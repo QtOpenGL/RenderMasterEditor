@@ -27,6 +27,9 @@ public:
     void BeforeClose();
     QString GetProjectDir();
 
+	using CoreRender = RENDER_MASTER::ICoreRender;
+	inline CoreRender *getCoreRender() { CoreRender* p; pCore->GetSubSystem((RENDER_MASTER::ISubSystem**) &p, RENDER_MASTER::SUBSYSTEM_TYPE::CORE_RENDER); return p; }
+
 signals:
     void EngineInited(RENDER_MASTER::ICore *pCore);
     void EngineBeforeClose(RENDER_MASTER::ICore *pCore);

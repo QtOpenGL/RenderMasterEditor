@@ -48,7 +48,8 @@ HEADERS  += mainwindow.h \
     projectview.h \
     propertieswidget.h \
     editorglobal.h \
-    myspinbox.h
+    myspinbox.h \
+    mylineedit.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \

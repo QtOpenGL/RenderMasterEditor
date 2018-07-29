@@ -17,7 +17,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QLineEdit" name="lineEdit">
+      <widget class="MyLineEdit" name="lineEdit">
        <property name="text">
         <string>GameObject1</string>
        </property>
@@ -28,7 +28,7 @@
         <enum>Qt::LogicalMoveStyle</enum>
        </property>
        <property name="clearButtonEnabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -408,6 +408,11 @@
    <class>MySpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>myspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">mylineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

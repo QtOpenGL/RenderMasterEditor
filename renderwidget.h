@@ -10,6 +10,9 @@ namespace Ui {
 class D3D11Widget;
 }
 
+using ICoreRender = RENDER_MASTER::ICoreRender;
+using ICoreMesh = RENDER_MASTER::ICoreMesh;
+
 class RenderWidget : public QWidget
 {
     Q_OBJECT
@@ -17,8 +20,10 @@ class RenderWidget : public QWidget
     HWND h;
 
     RENDER_MASTER::ICore *pCore{nullptr};
-    RENDER_MASTER::ICoreRender *pCoreRender{nullptr};
-    RENDER_MASTER::ISceneManager *pSceneManager{nullptr};
+	RENDER_MASTER::ICoreRender *pCoreRender{nullptr};
+	RENDER_MASTER::IRender *pRender{nullptr};
+	RENDER_MASTER::ISceneManager *pSceneManager{nullptr};
+	RENDER_MASTER::IResourceManager *pResMan{nullptr};
     RENDER_MASTER::ICamera *pCamera{nullptr};
 
     int mouse{};
@@ -31,6 +36,10 @@ class RenderWidget : public QWidget
     int key_d{};
     int key_q{};
     int key_e{};
+
+	ICoreMesh *_pAxesMesh{nullptr};
+	ICoreMesh *_pAxesArrowMesh{nullptr};
+	ICoreMesh *_pGridMesh{nullptr};
 
 public:
     explicit RenderWidget(QWidget *parent = 0);
@@ -47,6 +56,9 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 
+	void RenderWidget::_draw_axes(const mat4& VP);
+	void RenderWidget::_draw_grid(const mat4& VP);
+
 
 private slots:
     void onEngineInited(RENDER_MASTER::ICore *pCore);
@@ -56,6 +68,7 @@ private slots:
 
 private:
     Ui::D3D11Widget *ui;
+
 };
 
 #endif // D3D11WIDGET_H

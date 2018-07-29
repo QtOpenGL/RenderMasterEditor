@@ -6,6 +6,7 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QCursor>
+#include <QLineEdit>
 
 class MySpinBox : public QDoubleSpinBox
 {
@@ -78,19 +79,30 @@ protected:
 	// clear focus on enter pressed
 	bool virtual eventFilter(QObject* obj, QEvent* event)
 	{
-		if (event->type()==QEvent::KeyPress) {
+		if (event->type()==QEvent::KeyPress)
+		{
 			QKeyEvent* key = static_cast<QKeyEvent*>(event);
-			if ( (key->key()==Qt::Key_Enter) || (key->key()==Qt::Key_Return) ) {
+
+			if ((key->key()==Qt::Key_Enter) || (key->key()==Qt::Key_Return))
 				clearFocus();
-			} else {
+			else
 				return QObject::eventFilter(obj, event);
-			}
+
 			return true;
-		} else {
+		} else
 			return QObject::eventFilter(obj, event);
-		}
+
 		return false;
 	}
+
+	void focusInEvent(QFocusEvent *event) override
+	{
+		QDoubleSpinBox::focusInEvent(event);
+		lineEdit()->selectAll();
+	}
+
+
+
 
 private:
 	int mouseStartPosY{0};
