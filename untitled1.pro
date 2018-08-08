@@ -36,7 +36,8 @@ SOURCES += main.cpp\
     renderwidget.cpp \
     projectview.cpp \
     propertieswidget.cpp \
-    editorglobal.cpp
+    editorglobal.cpp \
+    about.cpp
 
 HEADERS  += mainwindow.h \
     dialog.h \
@@ -49,7 +50,8 @@ HEADERS  += mainwindow.h \
     propertieswidget.h \
     editorglobal.h \
     myspinbox.h \
-    mylineedit.h
+    mylineedit.h \
+    about.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
@@ -57,7 +59,9 @@ FORMS    += mainwindow.ui \
     scenetreewidget.ui \
     dd3d11widget.ui \
     projectview.ui \
-    propertieswidget.ui
+    propertieswidget.ui \
+    about.ui \
+    about.ui
 
 RESOURCES += \
     myresources.qrc

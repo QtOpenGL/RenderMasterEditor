@@ -197,7 +197,7 @@ void RenderWidget::onUpdate(float dt)
     if (pCore)
     {
         {
-			const float moveSpeed = 20.0f;
+			const float moveSpeed = 35.0f;
 
 			vec3 pos;
             pCamera->GetPosition(&pos);

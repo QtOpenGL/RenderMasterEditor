@@ -15,6 +15,7 @@
 #include "projectview.h"
 #include "propertieswidget.h"
 #include "editorglobal.h"
+#include "about.h"
 
 #include "advanceddockingsystem/include/SectionWidget.h"
 #include "advanceddockingsystem/include/DropOverlay.h"
@@ -250,3 +251,10 @@ void MainWindow::contextMenuEvent(QContextMenuEvent* e)
     delete m;
 }
 
+
+void MainWindow::on_actionAbout_Render_Master_triggered()
+{
+	auto *about = new About();
+	about->show();
+	about->exec();
+}

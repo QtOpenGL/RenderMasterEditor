@@ -32,6 +32,8 @@ private slots:
 
     void on_actionBuild_Standalone_triggered();
 
+	void on_actionAbout_Render_Master_triggered();
+
 protected:
     virtual void closeEvent(QCloseEvent* e);
     virtual void contextMenuEvent(QContextMenuEvent* e);
