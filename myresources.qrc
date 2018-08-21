@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/icons">
         <file>cube.png</file>
+        <file>manipulator_scale.png</file>
     </qresource>
     <qresource prefix="/styles">
         <file>dark.qss</file>
