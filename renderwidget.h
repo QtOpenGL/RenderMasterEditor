@@ -41,6 +41,16 @@ class RenderWidget : public QWidget
 	ICoreMesh *_pAxesArrowMesh{nullptr};
 	ICoreMesh *_pGridMesh{nullptr};
 
+	struct alignas(16) EveryFrameParameters
+	{
+		vec4 main_color;
+		vec4 nL;
+		mat4 NM;
+		mat4 MVP;
+	} params;
+
+	RENDER_MASTER::IUniformBuffer *paramsBuffer{nullptr};
+
 public:
     explicit RenderWidget(QWidget *parent = 0);
     ~RenderWidget();

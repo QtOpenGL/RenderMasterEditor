@@ -125,6 +125,8 @@ void RenderWidget::_draw_axes(const mat4& VP)
 	ShaderRequirement req = { a, false };
 	pRender->GetShader(&shader, &req);
 	if (!shader) return;
+
+
 	pCoreRender->SetShader(shader);
 
 	float z = VP.el_2D[2][3];
@@ -136,12 +138,16 @@ void RenderWidget::_draw_axes(const mat4& VP)
 	M.el_2D[1][1] = 80.0f * z / w;
 	M.el_2D[2][2] = 80.0f * z / w;
 
-	mat4 MVP = VP * M;
+	params.MVP = VP * M;
 
-	pCoreRender->SetUniform("MVP", &MVP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
+	//pCoreRender->SetUniform("MVP", &MVP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
 
-	vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
+	//vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	//pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
+	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	pCoreRender->SetUniform(paramsBuffer, &params.main_color);
+	pCoreRender->SetUniformBufferToShader(paramsBuffer, 0);
 
 	pCoreRender->SetDepthState(false);
 
@@ -160,10 +166,17 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
 	if (!shader) return;
 	pCoreRender->SetShader(shader);
 
-	pCoreRender->SetUniform("MVP", &VP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
+	//pCoreRender->SetUniform("MVP", &VP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
 
-	vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
+	//vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	//pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
+
+	params.MVP = VP;
+	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	pCoreRender->SetUniform(paramsBuffer, &params.main_color);
+	pCoreRender->SetUniformBufferToShader(paramsBuffer, 0);
+
 
 	pCoreRender->SetDepthState(true);
 
@@ -258,6 +271,8 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	pResMan->GetDefaultResource((IResource**)&_pAxesMesh, DEFAULT_RES_TYPE::AXES);
 	pResMan->GetDefaultResource((IResource**)&_pAxesArrowMesh, DEFAULT_RES_TYPE::AXES_ARROWS);
 	pResMan->GetDefaultResource((IResource**)&_pGridMesh, DEFAULT_RES_TYPE::GRID);
+
+	pCoreRender->CreateUniformBuffer(&paramsBuffer, sizeof(EveryFrameParameters));
 }
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
