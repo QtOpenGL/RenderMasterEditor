@@ -98,6 +98,12 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -113,6 +119,8 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionactionManipulatorTransform"/>
+   <addaction name="actionactionManipulatorRotate"/>
    <addaction name="actionManipulatorScale"/>
   </widget>
   <action name="actionNew_scene">
@@ -247,12 +255,39 @@
    </property>
   </action>
   <action name="actionManipulatorScale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="myresources.qrc">
      <normaloff>:/icons/manipulator_scale.png</normaloff>:/icons/manipulator_scale.png</iconset>
    </property>
    <property name="text">
     <string>ManipulatorScale</string>
+   </property>
+  </action>
+  <action name="actionactionManipulatorTransform">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myresources.qrc">
+     <normaloff>:/icons/manipulator_transform.png</normaloff>:/icons/manipulator_transform.png</iconset>
+   </property>
+   <property name="text">
+    <string>actionManipulatorTransform</string>
+   </property>
+  </action>
+  <action name="actionactionManipulatorRotate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myresources.qrc">
+     <normaloff>:/icons/manipulator_rotate.png</normaloff>:/icons/manipulator_rotate.png</iconset>
+   </property>
+   <property name="text">
+    <string>actionManipulatorRotate</string>
    </property>
   </action>
  </widget>
