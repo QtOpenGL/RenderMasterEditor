@@ -72,6 +72,10 @@ QMenuBar::item:pressed {
 
 /* TOOLBAR */
 
+QToolBar {
+	border-color: #EEEEEE;
+}
+
 QToolBar::handle:horizontal {
     image: url(":/icons/toolbar_handle.png");
 }
@@ -83,16 +87,14 @@ QToolBar::handle:vertical {
 QToolButton:hover,
 QToolButton::menu-button:hover {
     background-color: #2a526c;
-} 
+}
 
-/*
 QToolButton:checked,
 QToolButton:pressed,
 QToolButton::menu-button:pressed {
-    background-color: #555555;
-    border: 1px solid #555555;
+    background-color: rgb(60, 61, 59);
 }
- */
+ 
 /* background for main window */
 ads--ContainerWidget,
 ContainerWidget
