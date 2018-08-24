@@ -122,7 +122,9 @@ void RenderWidget::_draw_axes(const mat4& VP)
 	_pAxesMesh->GetAttributes(&a);
 
 	ICoreShader *shader{nullptr};
-	ShaderRequirement req = { a, false };
+	ShaderRequirement req;
+	req.attributes = a;
+	req.alphaTest = false;
 	pRender->GetShader(&shader, &req);
 	if (!shader) return;
 
@@ -161,7 +163,9 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
 	_pAxesMesh->GetAttributes(&a);
 
 	ICoreShader *shader{nullptr};
-	ShaderRequirement req = { a, false };
+	ShaderRequirement req;
+	req.attributes = a;
+	req.alphaTest = false;
 	pRender->GetShader(&shader, &req);
 	if (!shader) return;
 	pCoreRender->SetShader(shader);
