@@ -141,11 +141,6 @@ void RenderWidget::_draw_axes(const mat4& VP)
 	M.el_2D[2][2] = 80.0f * z / w;
 
 	params.MVP = VP * M;
-
-	//pCoreRender->SetUniform("MVP", &MVP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
-
-	//vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	//pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
 	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	pCoreRender->SetUniform(paramsBuffer, &params.main_color);
@@ -153,14 +148,17 @@ void RenderWidget::_draw_axes(const mat4& VP)
 
 	pCoreRender->SetDepthState(false);
 
+	pCoreRender->SetMesh(_pAxesMesh);
 	pCoreRender->Draw(_pAxesMesh);
+
+	pCoreRender->SetMesh(_pAxesArrowMesh);
 	pCoreRender->Draw(_pAxesArrowMesh);
 }
 
 void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
 {
 	INPUT_ATTRUBUTE a;
-	_pAxesMesh->GetAttributes(&a);
+	_pGridMesh->GetAttributes(&a);
 
 	ICoreShader *shader{nullptr};
 	ShaderRequirement req;
@@ -170,13 +168,8 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
 	if (!shader) return;
 	pCoreRender->SetShader(shader);
 
-	//pCoreRender->SetUniform("MVP", &VP.el_1D[0], shader, SHADER_VARIABLE_TYPE::MATRIX4X4);
-
-	//vec4 main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	//pCoreRender->SetUniform("main_color", &main_color.x, shader, SHADER_VARIABLE_TYPE::VECTOR4);
-
 	params.MVP = VP;
-	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	params.main_color = vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
 	pCoreRender->SetUniform(paramsBuffer, &params.main_color);
 	pCoreRender->SetUniformBufferToShader(paramsBuffer, 0);
@@ -184,6 +177,7 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
 
 	pCoreRender->SetDepthState(true);
 
+	pCoreRender->SetMesh(_pGridMesh);
 	pCoreRender->Draw(_pGridMesh);
 }
 
