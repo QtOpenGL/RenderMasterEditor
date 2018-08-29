@@ -276,5 +276,10 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
     Q_UNUSED( pCoreIn )
+
+	pResMan->DecrementRef(_pAxesMesh);
+	pResMan->DecrementRef(_pAxesArrowMesh);
+	pResMan->DecrementRef(_pGridMesh);
+
     pCore = nullptr;
 }
