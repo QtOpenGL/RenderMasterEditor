@@ -153,6 +153,8 @@ void RenderWidget::_draw_axes(const mat4& VP)
 
 	pCoreRender->SetMesh(_pAxesArrowMesh);
 	pCoreRender->Draw(_pAxesArrowMesh);
+
+	pCoreRender->SetDepthState(true);
 }
 
 void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
