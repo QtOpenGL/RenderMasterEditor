@@ -89,7 +89,6 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event)
         dx = event->pos().x() - lastMousePos.x();
         dy = event->pos().y() - lastMousePos.y();
         lastMousePos = event->pos();
-
         //pCore->Log("RenderWidget::mouseMoveEvent(QMouseEvent *event)", RENDER_MASTER::LOG_TYPE::NORMAL);
 
         QWidget::mouseMoveEvent(event);
@@ -210,7 +209,7 @@ void RenderWidget::onUpdate(float dt)
     if (pCore)
     {
         {
-			const float moveSpeed = 35.0f;
+			const float moveSpeed = 40.0f;
 
 			vec3 pos;
             pCamera->GetPosition(&pos);
@@ -245,13 +244,16 @@ void RenderWidget::onUpdate(float dt)
 
 		if (mouse)
 		{
-			const float rotSpeed = 9.0f;
+			const float rotSpeed = 13.0f;
 			quat rot;
 			pCamera->GetRotation(&rot);
 			quat dxRot = quat(-dy * dt * rotSpeed, 0.0f, 0.0f);
 			quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotSpeed);
 			rot = dyRot * rot * dxRot;
 			pCamera->SetRotation(&rot);
+
+			dx = 0.0f;
+			dy = 0.0f;
 		}
 
         //pCore->Log("RenderWidget::onUpdate()", RENDER_MASTER::LOG_TYPE::NORMAL);
