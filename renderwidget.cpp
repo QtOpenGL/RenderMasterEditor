@@ -245,12 +245,13 @@ void RenderWidget::onUpdate(float dt)
 
 		if (mouse)
 		{
-//            const float rotSpeed = 7.0f;
-//            vec3 rot;
-//            pCamera->GetRotation(&rot);
-//            rot.y += dx * dt * rotSpeed;
-//            rot.x += dy * dt * rotSpeed;
-//            pCamera->SetRotation(&rot);
+			const float rotSpeed = 9.0f;
+			quat rot;
+			pCamera->GetRotation(&rot);
+			quat dxRot = quat(-dy * dt * rotSpeed, 0.0f, 0.0f);
+			quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotSpeed);
+			rot = dyRot * rot * dxRot;
+			pCamera->SetRotation(&rot);
 		}
 
         //pCore->Log("RenderWidget::onUpdate()", RENDER_MASTER::LOG_TYPE::NORMAL);
