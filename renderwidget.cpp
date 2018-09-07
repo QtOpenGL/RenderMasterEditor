@@ -8,6 +8,7 @@
 using namespace RENDER_MASTER;
 
 extern EngineGlobal* eng;
+extern EditorGlobal* editor;
 
 RenderWidget::RenderWidget(QWidget *parent) :
     QWidget(parent, Qt::MSWindowsOwnDC),
@@ -31,7 +32,9 @@ RenderWidget::RenderWidget(QWidget *parent) :
     connect(eng, &EngineGlobal::EngineInited, this, &RenderWidget::onEngineInited, Qt::DirectConnection);
     connect(eng, &EngineGlobal::EngineBeforeClose, this, &RenderWidget::onEngineClosed, Qt::DirectConnection);
     connect(eng, &EngineGlobal::OnRender, this, &RenderWidget::onRender, Qt::DirectConnection);
-    connect(eng, &EngineGlobal::OnUpdate, this, &RenderWidget::onUpdate, Qt::DirectConnection);
+	connect(eng, &EngineGlobal::OnUpdate, this, &RenderWidget::onUpdate, Qt::DirectConnection);
+
+	connect(editor, &EditorGlobal::ManipulatorPressed, this, &RenderWidget::onManipulatorPressed, Qt::DirectConnection);
 
     h = (HWND)winId();
 }
@@ -117,6 +120,9 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
 
 void RenderWidget::_draw_axes(const mat4& VP)
 {
+	if (MANIPULATOR::TRANSLATE != _currentManipulator)
+		return;
+
 	INPUT_ATTRUBUTE a;
 	_pAxesMesh->GetAttributes(&a);
 
@@ -260,9 +266,11 @@ void RenderWidget::onUpdate(float dt)
     }
 }
 
+void RenderWidget::onManipulatorPressed(MANIPULATOR m) { _currentManipulator = m; }
+
 void RenderWidget::onEngineInited(ICore *pCoreIn)
 {
-    pCore = pCoreIn;
+	pCore = pCoreIn;
 
 	pCore->GetSubSystem((ISubSystem **)&pCoreRender, RENDER_MASTER::SUBSYSTEM_TYPE::CORE_RENDER);
 	pCore->GetSubSystem((ISubSystem **)&pRender, RENDER_MASTER::SUBSYSTEM_TYPE::RENDER);

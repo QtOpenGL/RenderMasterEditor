@@ -34,6 +34,12 @@ private slots:
 
 	void on_actionAbout_Render_Master_triggered();
 
+	void on_actionactionManipulatorRotate_triggered(bool checked);
+
+	void on_actionManipulatorScale_triggered(bool checked);
+
+	void on_actionactionManipulatorTransform_triggered(bool checked);
+
 protected:
     virtual void closeEvent(QCloseEvent* e);
     virtual void contextMenuEvent(QContextMenuEvent* e);

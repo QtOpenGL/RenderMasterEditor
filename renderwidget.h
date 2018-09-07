@@ -5,6 +5,7 @@
 #include <QPoint>
 
 #include "Engine.h"
+#include "editorglobal.h"
 
 namespace Ui {
 class D3D11Widget;
@@ -76,8 +77,13 @@ private slots:
     void onRender();
     void onUpdate(float dt);
 
+	void onManipulatorPressed(MANIPULATOR m);
+
 private:
-    Ui::D3D11Widget *ui;
+
+	MANIPULATOR _currentManipulator{MANIPULATOR::NONE};
+
+	Ui::D3D11Widget *ui;
 
 };
 

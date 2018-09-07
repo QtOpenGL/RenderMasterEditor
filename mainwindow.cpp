@@ -258,3 +258,40 @@ void MainWindow::on_actionAbout_Render_Master_triggered()
 	about->show();
 	about->exec();
 }
+
+void MainWindow::on_actionactionManipulatorRotate_triggered(bool checked)
+{
+	if (checked)
+	{
+		editor->ManipulatorPressed(MANIPULATOR::ROTATE);
+		ui->actionactionManipulatorTransform->setChecked(false);
+		ui->actionManipulatorScale->setChecked(false);
+	}
+	else
+		editor->ManipulatorPressed(MANIPULATOR::NONE);
+}
+
+void MainWindow::on_actionManipulatorScale_triggered(bool checked)
+{
+	if (checked)
+	{
+		editor->ManipulatorPressed(MANIPULATOR::SCALE);
+		ui->actionactionManipulatorTransform->setChecked(false);
+		ui->actionactionManipulatorRotate->setChecked(false);
+	}
+	else
+		editor->ManipulatorPressed(MANIPULATOR::NONE);
+
+}
+
+void MainWindow::on_actionactionManipulatorTransform_triggered(bool checked)
+{
+	if (checked)
+	{
+		editor->ManipulatorPressed(MANIPULATOR::TRANSLATE);
+		ui->actionactionManipulatorRotate->setChecked(false);
+		ui->actionManipulatorScale->setChecked(false);
+	}
+	else
+		editor->ManipulatorPressed(MANIPULATOR::NONE);
+}

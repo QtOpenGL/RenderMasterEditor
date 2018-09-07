@@ -5,6 +5,16 @@
 #include "propertieswidget.h"
 #include "scenetreewidget.h"
 
+
+enum class MANIPULATOR
+{
+	NONE,
+	TRANSLATE,
+	ROTATE,
+	SCALE
+};
+
+
 class EditorGlobal : public QObject
 {
     Q_OBJECT
@@ -21,6 +31,11 @@ signals:
     //void OnUpdate(float dt);
     //void OnRender();
 	void SceneTreeInited(SceneTreeWidget *sceneTreeWidget);
+
+
+	// TOOLBAR
+
+	void ManipulatorPressed(MANIPULATOR manipulator);
 
 public slots:
      //void _OnTimer();
