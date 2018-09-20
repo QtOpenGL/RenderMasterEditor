@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     HWND h = (HWND)render_view->winId();
 
 	auto glFlag = INIT_FLAGS::OPENGL45;
-	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::DIRECTX11 ? "  (GL)" : " (DX11)"));
+	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
 	auto rm_inited =pCore->Init(INIT_FLAGS::EXTERN_WINDOW | glFlag, "resources", &h);
 
 	ResourcePtr<IModel> model;
@@ -75,6 +75,8 @@ int main(int argc, char *argv[])
 		qWarning() << "Failed to initialize RenderMaster";
 
     int ret = a.exec();
+
+	model.reset();
 
 	if (SUCCEEDED(rm_inited))
     {
