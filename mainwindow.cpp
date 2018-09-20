@@ -15,12 +15,14 @@
 #include "projectview.h"
 #include "propertieswidget.h"
 #include "editorglobal.h"
+#include "EngineGlobal.h"
 #include "about.h"
 
 #include "advanceddockingsystem/include/SectionWidget.h"
 #include "advanceddockingsystem/include/DropOverlay.h"
 
 extern EditorGlobal *editor;
+extern EngineGlobal *eng;
 
 static int CONTENT_COUNT = 0;
 
@@ -294,4 +296,21 @@ void MainWindow::on_actionactionManipulatorTransform_triggered(bool checked)
 	}
 	else
 		editor->ManipulatorPressed(MANIPULATOR::NONE);
+}
+
+void MainWindow::on_actionSave_scene_triggered()
+{
+	if (!eng) return;
+
+	using RENDER_MASTER::ICore;
+	using RENDER_MASTER::ISceneManager;
+	using RENDER_MASTER::ISubSystem;
+
+	ICore *core;
+	eng->GetCore(core);
+
+	ISceneManager *sm;
+	core->GetSubSystem((ISubSystem**)&sm, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
+
+	sm->SaveScene("Scene.yaml");
 }

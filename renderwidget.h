@@ -11,8 +11,7 @@ namespace Ui {
 class D3D11Widget;
 }
 
-using ICoreRender = RENDER_MASTER::ICoreRender;
-using ICoreMesh = RENDER_MASTER::ICoreMesh;
+using namespace RENDER_MASTER;
 
 class RenderWidget : public QWidget
 {
@@ -25,7 +24,7 @@ class RenderWidget : public QWidget
 	RENDER_MASTER::IRender *pRender{nullptr};
 	RENDER_MASTER::ISceneManager *pSceneManager{nullptr};
 	RENDER_MASTER::IResourceManager *pResMan{nullptr};
-    RENDER_MASTER::ICamera *pCamera{nullptr};
+   // RENDER_MASTER::ICamera *pCamera{nullptr};
 
     int mouse{};
     QPoint lastMousePos;
@@ -38,9 +37,9 @@ class RenderWidget : public QWidget
     int key_q{};
     int key_e{};
 
-	ICoreMesh *_pAxesMesh{nullptr};
-	ICoreMesh *_pAxesArrowMesh{nullptr};
-	ICoreMesh *_pGridMesh{nullptr};
+//	ICoreMesh *_pAxesMesh{nullptr};
+//	ICoreMesh *_pAxesArrowMesh{nullptr};
+//	ICoreMesh *_pGridMesh{nullptr};
 
 	struct alignas(16) EveryFrameParameters
 	{
@@ -50,7 +49,13 @@ class RenderWidget : public QWidget
 		mat4 MVP;
 	} params;
 
-	RENDER_MASTER::IUniformBuffer *paramsBuffer{nullptr};
+	// resources
+	ResourcePtr<IUniformBuffer> parameters;
+	ResourcePtr<ICoreMesh> _pAxesMesh;
+	ResourcePtr<ICoreMesh> _pAxesArrowMesh;
+	ResourcePtr<ICoreMesh> _pGridMesh;
+
+//	RENDER_MASTER::IUniformBuffer *paramsBuffer{nullptr};
 
 public:
     explicit RenderWidget(QWidget *parent = 0);
@@ -67,16 +72,15 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 
-	void RenderWidget::_draw_axes(const mat4& VP);
-	void RenderWidget::_draw_grid(const mat4& VP);
+	void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera);
+	void RenderWidget::_draw_grid(const mat4& VP, ICamera *pCameras);
 
 
 private slots:
     void onEngineInited(RENDER_MASTER::ICore *pCore);
     void onEngineClosed(RENDER_MASTER::ICore *pCore);
     void onRender();
-    void onUpdate(float dt);
-
+	void onUpdate(float dt);
 	void onManipulatorPressed(MANIPULATOR m);
 
 private:
@@ -84,7 +88,6 @@ private:
 	MANIPULATOR _currentManipulator{MANIPULATOR::NONE};
 
 	Ui::D3D11Widget *ui;
-
 };
 
 #endif // D3D11WIDGET_H

@@ -57,9 +57,11 @@ int main(int argc, char *argv[])
     QWidget *render_view = w->findChild<QWidget*>("D3D11Widget");
     HWND h = (HWND)render_view->winId();
 
-	auto glFlag = INIT_FLAGS::DIRECTX11;
-	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
+	auto glFlag = INIT_FLAGS::OPENGL45;
+	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::DIRECTX11 ? "  (GL)" : " (DX11)"));
 	auto rm_inited =pCore->Init(INIT_FLAGS::EXTERN_WINDOW | glFlag, "resources", &h);
+
+	ResourcePtr<IModel> model;
 
 	if (SUCCEEDED(rm_inited))
 	{
@@ -68,8 +70,7 @@ int main(int argc, char *argv[])
 		IResourceManager *pResManager;
 		pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-		IModel *pModel;
-		pResManager->LoadModel(&pModel, "box.fbx", nullptr);
+		model = pResManager->loadModel("box.fbx");
 	}else
 		qWarning() << "Failed to initialize RenderMaster";
 

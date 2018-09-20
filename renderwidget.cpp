@@ -118,7 +118,7 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_E) {key_e = 0; }
 }
 
-void RenderWidget::_draw_axes(const mat4& VP)
+void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 {
 	if (MANIPULATOR::TRANSLATE != _currentManipulator)
 		return;
@@ -148,19 +148,19 @@ void RenderWidget::_draw_axes(const mat4& VP)
 	params.MVP = VP * M;
 	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	pCoreRender->SetUniform(paramsBuffer, &params.main_color);
-	pCoreRender->SetUniformBufferToShader(paramsBuffer, 0);
+	pCoreRender->SetUniform(parameters.get(), &params.main_color);
+	pCoreRender->SetUniformBufferToShader(parameters.get(), 0);
 
 	pCoreRender->SetDepthState(false);
 
-	pCoreRender->SetMesh(_pAxesMesh);
-	pCoreRender->Draw(_pAxesMesh);
+	pCoreRender->SetMesh(_pAxesMesh.get());
+	pCoreRender->Draw(_pAxesMesh.get());
 
-	pCoreRender->SetMesh(_pAxesArrowMesh);
-	pCoreRender->Draw(_pAxesArrowMesh);
+	pCoreRender->SetMesh(_pAxesArrowMesh.get());
+	pCoreRender->Draw(_pAxesArrowMesh.get());
 }
 
-void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
+void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 {
 	INPUT_ATTRUBUTE a;
 	_pGridMesh->GetAttributes(&a);
@@ -176,92 +176,100 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP)
 	params.MVP = VP;
 	params.main_color = vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
-	pCoreRender->SetUniform(paramsBuffer, &params.main_color);
-	pCoreRender->SetUniformBufferToShader(paramsBuffer, 0);
+	pCoreRender->SetUniform(parameters.get(), &params.main_color);
+	pCoreRender->SetUniformBufferToShader(parameters.get(), 0);
 
 
 	pCoreRender->SetDepthState(true);
 
-	pCoreRender->SetMesh(_pGridMesh);
-	pCoreRender->Draw(_pGridMesh);
+	pCoreRender->SetMesh(_pGridMesh.get());
+	pCoreRender->Draw(_pGridMesh.get());
 }
 
 void RenderWidget::onRender()
 {
-    if (pCore)
-    {
-        pCore->RenderFrame(&h, pCamera);
+	if (!pCore)
+		return; // engine not loaded
 
-		eng->getCoreRender()->PushStates();
-		{
-			float aspect = (float)rect().width() / rect().height();
+	ICamera *pCamera = nullptr;
+	pSceneManager->GetDefaultCamera(&pCamera);
 
-			mat4 VP;
-			pCamera->GetViewProjectionMatrix(&VP, aspect);
+	if (!pCamera)
+		return; // no camera
 
-			_draw_grid(VP);
-			_draw_axes(VP);
-		}
-		eng->getCoreRender()->PopStates();
+	pCore->RenderFrame(&h, pCamera);
 
-		pCoreRender->SwapBuffers();
-    }
+	eng->getCoreRender()->PushStates();
+	{
+		float aspect = (float)rect().width() / rect().height();
+
+		mat4 VP;
+		pCamera->GetViewProjectionMatrix(&VP, aspect);
+
+		_draw_grid(VP, pCamera);
+		_draw_axes(VP, pCamera);
+	}
+	eng->getCoreRender()->PopStates();
+
+	pCoreRender->SwapBuffers();
 }
 
 void RenderWidget::onUpdate(float dt)
 {
-    if (pCore)
-    {
-        {
-			const float moveSpeed = 40.0f;
+	if (!pCore)
+		return; // engine not loaded
 
-			vec3 pos;
-            pCamera->GetPosition(&pos);
+	ICamera *pCamera = nullptr;
+	pSceneManager->GetDefaultCamera(&pCamera);
 
-			mat4 M;
-            pCamera->GetModelMatrix(&M);
+	if (!pCamera)
+		return; // no camera
 
-			vec3 orth_direction = vec3(M.Column(0)); // X local
-			vec3 forward_direction = -vec3(M.Column(2)); // -Z local
-			vec3 up_direction = vec3(0.0f, 0.0f, 1.0f); // Z world
+	const float moveSpeed = 40.0f;
 
-			if (key_a)
-                pos -= orth_direction * dt * moveSpeed;
+	vec3 pos;
+	pCamera->GetPosition(&pos);
 
-            if (key_d)
-                pos += orth_direction * dt * moveSpeed;
+	mat4 M;
+	pCamera->GetModelMatrix(&M);
 
-            if (key_w)
-                pos += forward_direction * dt * moveSpeed;
+	vec3 orth_direction = vec3(M.Column(0)); // X local
+	vec3 forward_direction = -vec3(M.Column(2)); // -Z local
+	vec3 up_direction = vec3(0.0f, 0.0f, 1.0f); // Z world
 
-            if (key_s)
-                pos -= forward_direction * dt * moveSpeed;
+	if (key_a)
+		pos -= orth_direction * dt * moveSpeed;
 
-            if (key_q)
-                pos -= up_direction * dt * moveSpeed;
+	if (key_d)
+		pos += orth_direction * dt * moveSpeed;
 
-            if (key_e)
-                pos += up_direction * dt * moveSpeed;
+	if (key_w)
+		pos += forward_direction * dt * moveSpeed;
 
-            pCamera->SetPosition(&pos);
-        }
+	if (key_s)
+		pos -= forward_direction * dt * moveSpeed;
 
-		if (mouse)
-		{
-			const float rotSpeed = 13.0f;
-			quat rot;
-			pCamera->GetRotation(&rot);
-			quat dxRot = quat(-dy * dt * rotSpeed, 0.0f, 0.0f);
-			quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotSpeed);
-			rot = dyRot * rot * dxRot;
-			pCamera->SetRotation(&rot);
+	if (key_q)
+		pos -= up_direction * dt * moveSpeed;
 
-			dx = 0.0f;
-			dy = 0.0f;
-		}
+	if (key_e)
+		pos += up_direction * dt * moveSpeed;
 
-        //pCore->Log("RenderWidget::onUpdate()", RENDER_MASTER::LOG_TYPE::NORMAL);
-    }
+	pCamera->SetPosition(&pos);
+
+	if (mouse)
+	{
+		const float rotSpeed = 13.0f;
+		quat rot;
+		pCamera->GetRotation(&rot);
+		quat dxRot = quat(-dy * dt * rotSpeed, 0.0f, 0.0f);
+		quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotSpeed);
+		rot = dyRot * rot * dxRot;
+		pCamera->SetRotation(&rot);
+
+		dx = 0.0f;
+		dy = 0.0f;
+	}
 }
 
 void RenderWidget::onManipulatorPressed(MANIPULATOR m) { _currentManipulator = m; }
@@ -275,22 +283,28 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 	pCore->GetSubSystem((ISubSystem **)&pResMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-    pSceneManager->GetDefaultCamera(&pCamera);
+	//pSceneManager->GetDefaultCamera(&pCamera);
 
-	pResMan->GetDefaultResource((IResource**)&_pAxesMesh, DEFAULT_RES_TYPE::AXES);
-	pResMan->GetDefaultResource((IResource**)&_pAxesArrowMesh, DEFAULT_RES_TYPE::AXES_ARROWS);
-	pResMan->GetDefaultResource((IResource**)&_pGridMesh, DEFAULT_RES_TYPE::GRID);
+	//pResMan->GetDefaultResource((IResource**)&_pAxesMesh, DEFAULT_RES_TYPE::AXES);
+	//pResMan->GetDefaultResource((IResource**)&_pAxesArrowMesh, DEFAULT_RES_TYPE::AXES_ARROWS);
+	//pResMan->GetDefaultResource((IResource**)&_pGridMesh, DEFAULT_RES_TYPE::GRID);
+	//
+	//pCoreRender->CreateUniformBuffer(&paramsBuffer, sizeof(EveryFrameParameters));
 
-	pCoreRender->CreateUniformBuffer(&paramsBuffer, sizeof(EveryFrameParameters));
+	parameters = pResMan->createUniformBuffer(sizeof(EveryFrameParameters));
+	_pAxesMesh = pResMan->createDefaultMesh(RES_TYPE::MESH_AXES);
+	_pAxesArrowMesh = pResMan->createDefaultMesh(RES_TYPE::MESH_AXES_ARROWS);
+	_pGridMesh = pResMan->createDefaultMesh(RES_TYPE::MESH_GRID);
 }
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
     Q_UNUSED( pCoreIn )
 
-	pResMan->DecrementRef(_pAxesMesh);
-	pResMan->DecrementRef(_pAxesArrowMesh);
-	pResMan->DecrementRef(_pGridMesh);
+	parameters.reset();
+	_pAxesArrowMesh.reset();
+	_pAxesMesh.reset();
+	_pGridMesh.reset();
 
     pCore = nullptr;
 }

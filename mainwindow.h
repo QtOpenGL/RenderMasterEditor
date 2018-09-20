@@ -40,6 +40,8 @@ private slots:
 
 	void on_actionactionManipulatorTransform_triggered(bool checked);
 
+	void on_actionSave_scene_triggered();
+
 protected:
     virtual void closeEvent(QCloseEvent* e);
     virtual void contextMenuEvent(QContextMenuEvent* e);
