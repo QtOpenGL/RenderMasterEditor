@@ -7,7 +7,7 @@
 #include <QItemSelection>
 
 
-class RenderMasterSceneManagerAdapter : public QAbstractItemModel, RENDER_MASTER::IGameObjectEventSubscriber
+class RenderMasterSceneManagerAdapter : public QAbstractItemModel, RENDER_MASTER::IResourceEventSubscriber
 {
 	Q_OBJECT
 
@@ -35,7 +35,7 @@ public:
 
 	// IGameObjectEventSubscriber interface
 public:
-	API Call(RENDER_MASTER::IGameObject *pGameObject) override;
+	API Call(RENDER_MASTER::IResource *pGameObject) override;
 
 
 private slots:

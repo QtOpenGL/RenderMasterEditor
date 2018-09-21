@@ -30,9 +30,9 @@ int RenderMasterSceneManagerAdapter::rowCount(const QModelIndex &parent) const
 		return 0;
 	}
 
-	IGameObjectEvent *pGameObjectEvent;
+	IResourceEvent *pGameObjectEvent;
 	sm->GetGameObjectAddedEvent(&pGameObjectEvent);
-	pGameObjectEvent->Subscribe((IGameObjectEventSubscriber*)this);
+	pGameObjectEvent->Subscribe((IResourceEventSubscriber*)this);
 
 	uint rootGameObjects;
 	sm->GetChilds(&rootGameObjects, nullptr);
@@ -64,7 +64,7 @@ QModelIndex RenderMasterSceneManagerAdapter::index(int row, int column, const QM
 
 	if( 0 <= row && row < rootGameObjects )
 	{
-		IGameObject *go{nullptr};
+		IResource *go{nullptr};
 		sm->GetChild(&go, nullptr, row);
 		return createIndex( row, column, go );
 	}
@@ -99,7 +99,9 @@ QVariant RenderMasterSceneManagerAdapter::data( const QModelIndex &index, int ro
 	{
 	case 0:
 	{
-		IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
+		IResource *res = static_cast<IResource*>( index.internalPointer() );
+		IGameObject *go;
+		res->GetPointer((void**)&go);
 		const char *name;
 		go->GetName(&name);
 		return QVariant(name);
@@ -139,7 +141,9 @@ bool RenderMasterSceneManagerAdapter::setData(const QModelIndex &index, const QV
 {
 	if (index.isValid() && role == Qt::EditRole && value.toString() != "")
 	{
-		IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
+		IResource *res = static_cast<IResource*>( index.internalPointer() );
+		IGameObject *go = nullptr;
+		res->GetPointer((void**)&go);
 		go->SetName( value.toString().toUtf8().data() );
 		emit dataChanged(index, index);
 		return true;
@@ -327,7 +331,7 @@ void RenderMasterSceneManagerAdapter::onEngineClosed(RENDER_MASTER::ICore *pCore
 	sm = nullptr;
 }
 
-API RenderMasterSceneManagerAdapter::Call(IGameObject *pGameObject)
+API RenderMasterSceneManagerAdapter::Call(IResource *pGameObject)
 {
 	emit layoutChanged();
 	return S_OK;
@@ -371,7 +375,9 @@ void SceneTreeWidget::_selectionChanged(const QItemSelection &selected, const QI
 		const QModelIndex& index = selected.indexes().at(0);
 		if (index.isValid())
 		{
-			IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
+			IResource *res = static_cast<IResource*>( index.internalPointer() );
+			IGameObject *go;
+			res->GetPointer((void**)&go);
 			if (go)
 			{
 				selectionChanged(go);
@@ -401,7 +407,9 @@ void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIn
 		selectionModel->clear();
 	}else
 	{
-		IGameObject *go = static_cast<IGameObject*>( current.internalPointer() );
+		IResource *res = static_cast<IResource*>( current.internalPointer() );
+		IGameObject *go;
+		res->GetPointer((void**)&go);
 		selectionChanged(go);
 	}
 }
