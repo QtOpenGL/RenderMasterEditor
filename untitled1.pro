@@ -60,7 +60,6 @@ FORMS    += mainwindow.ui \
     dd3d11widget.ui \
     projectview.ui \
     propertieswidget.ui \
-    about.ui \
     about.ui
 
 RESOURCES += \

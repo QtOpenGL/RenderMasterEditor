@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	if (SUCCEEDED(rm_inited))
     {
 		eng->BeforeClose();
-        pCore->CloseEngine();
+		pCore->ReleaseEngine();
 	}
 
 	FreeCore(pCore);
