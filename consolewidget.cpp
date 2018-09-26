@@ -18,9 +18,14 @@ ConsoleWidget::ConsoleWidget(QWidget *parent) :
     connect(eng, &EngineGlobal::EngineBeforeClose, this, &ConsoleWidget::onEngineClosed, Qt::DirectConnection);
 
     eng->GetCore(pCore);
-    ILogEvent *ev;
-    pCore->GetLogPrintedEv(&ev);
-    ev->Subscribe(this);
+	pCore->GetSubSystem((ISubSystem**)&pConsolee, SUBSYSTEM_TYPE::CONSOLE);
+
+	if (pConsolee)
+	{
+		ILogEvent *ev;
+		pConsolee->GetLogPrintedEv(&ev);
+		ev->Subscribe(this);
+	}
 }
 
 ConsoleWidget::~ConsoleWidget()
@@ -30,7 +35,7 @@ ConsoleWidget::~ConsoleWidget()
 
 void ConsoleWidget::execute()
 {
-    pCore->Log("hello from editor", RENDER_MASTER::LOG_TYPE::NORMAL);
+	pConsolee->Log("hello from editor", RENDER_MASTER::LOG_TYPE::NORMAL);
     ui->lineEdit->clear();
 }
 
@@ -62,12 +67,24 @@ void ConsoleWidget::on_pushButton_clicked()
 
 void ConsoleWidget::onEngineInited(ICore *pCore_)
 {    
+	if (pConsolee)
+		return;
+
+	pCore->GetSubSystem((ISubSystem**)&pConsolee, SUBSYSTEM_TYPE::CONSOLE);
+
+	if (pConsolee)
+	{
+		ILogEvent *ev;
+		pConsolee->GetLogPrintedEv(&ev);
+		ev->Subscribe(this);
+	}
 }
 
 void ConsoleWidget::onEngineClosed(ICore *pCore)
 {
-    ILogEvent *ev;
-    pCore->GetLogPrintedEv(&ev);
+	ILogEvent *ev;
+	pConsolee->GetLogPrintedEv(&ev);
     ev->Unsubscribe(this);
+	pConsolee = nullptr;
 }
 

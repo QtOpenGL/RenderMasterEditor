@@ -6,7 +6,6 @@
 #include <QPropertyAnimation>
 
 #include "mainwindow.h"
-
 #include "EngineGlobal.h"
 #include "editorglobal.h"
 
@@ -59,7 +58,7 @@ int main(int argc, char *argv[])
 
 	auto glFlag = INIT_FLAGS::OPENGL45;
 	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
-	auto rm_inited =pCore->Init(INIT_FLAGS::EXTERN_WINDOW | glFlag, "resources", &h);
+	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | glFlag, "resources", &h);
 
 	ResourcePtr<IModel> model;
 

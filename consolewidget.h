@@ -22,7 +22,8 @@ class ConsoleWidget : public QWidget, RENDER_MASTER::ILogEventSubscriber
 {
     Q_OBJECT
 
-   RENDER_MASTER::ICore *pCore;
+   RENDER_MASTER::ICore *pCore = nullptr;
+   RENDER_MASTER::IConsole *pConsolee = nullptr;
 
 public:
     explicit ConsoleWidget(QWidget *parent = 0);
