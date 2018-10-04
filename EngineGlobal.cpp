@@ -23,7 +23,7 @@ void EngineGlobal::BeforeClose()
 
 QString EngineGlobal::GetProjectDir()
 {
-    char *pDataDir;
+	const char *pDataDir;
     pCore->GetDataDir(&pDataDir);
     return QString(pDataDir);
 }
