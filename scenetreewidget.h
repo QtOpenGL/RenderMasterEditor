@@ -59,9 +59,6 @@ public:
     explicit SceneTreeWidget(QWidget *parent = 0);
     ~SceneTreeWidget();
 
-signals:
-	void selectionChanged(RENDER_MASTER::IGameObject *pGameObject);
-
 private:
     Ui::SceneTreeWidget *ui;
 

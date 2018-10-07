@@ -376,23 +376,18 @@ void SceneTreeWidget::_selectionChanged(const QItemSelection &selected, const QI
 		if (index.isValid())
 		{
 			IResource *res = static_cast<IResource*>( index.internalPointer() );
-			IGameObject *go;
-			res->GetPointer((void**)&go);
-			if (go)
-			{
-				selectionChanged(go);
-			}
+			auto vec = std::vector<IResource*>();
+			vec.push_back(res);
+			editor->ChangeSelection(vec);
 		}
 		//else
 		//{
 			//IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
 		//	selectionChanged(go);
 		//}
-
-
 	}else
 	{
-		selectionChanged(nullptr);
+		editor->ChangeSelection(vector<IResource*>());
 		auto *selectionModel = ui->treeView->selectionModel();
 		selectionModel->clear();
 	}
@@ -402,15 +397,15 @@ void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIn
 {
 	if (!current.isValid())
 	{
-		selectionChanged(nullptr);
+		editor->ChangeSelection(std::vector<IResource*>());
 		auto *selectionModel = ui->treeView->selectionModel();
 		selectionModel->clear();
 	}else
 	{
 		IResource *res = static_cast<IResource*>( current.internalPointer() );
-		IGameObject *go;
-		res->GetPointer((void**)&go);
-		selectionChanged(go);
+		auto vec = std::vector<IResource*>();
+		vec.push_back(res);
+		editor->ChangeSelection(vec);
 	}
 }
 

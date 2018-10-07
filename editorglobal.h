@@ -5,6 +5,8 @@
 #include "propertieswidget.h"
 #include "scenetreewidget.h"
 
+#include <vector>
+
 
 enum class MANIPULATOR
 {
@@ -19,26 +21,36 @@ class EditorGlobal : public QObject
 {
     Q_OBJECT
 
+	mat4 _selectionCenterWorldTransform;
+	int _someObejctSelected = 0;
+	int _numberSelectedObjects = 0;
+
 public:
     explicit EditorGlobal();
 
     PropertiesWidget *propertiesWidget{nullptr};
 	SceneTreeWidget *sceneTreeWidget{nullptr};
 
+	// Objects Selection
+	//
+	mat4 GetSelectionCeneter() { return _selectionCenterWorldTransform; }
+	int IsSomeObjectSelected() { return _someObejctSelected; }
+	int GetNumberSelectedObjects() { return _numberSelectedObjects; }
+	void ChangeSelection(const std::vector<IResource*>& selectedGameObjects);
+
 signals:
-    //void EngineInited(RENDER_MASTER::ICore *pCore);
-    //void EngineBeforeClose(RENDER_MASTER::ICore *pCore);
-    //void OnUpdate(float dt);
-    //void OnRender();
+
 	void SceneTreeInited(SceneTreeWidget *sceneTreeWidget);
 
-
-	// TOOLBAR
-
+	// Toolbar
+	//
 	void ManipulatorPressed(MANIPULATOR manipulator);
 
+	// Objects Selection
+	//
+	void selectionChanged(const std::vector<IResource*>& selectedObjects);
+
 public slots:
-     //void _OnTimer();
 };
 
 #endif // EDITORGLOBAL_H

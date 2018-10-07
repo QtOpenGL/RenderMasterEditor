@@ -53,14 +53,16 @@ void PropertiesWidget::showEvent(QShowEvent *event)
 
 }
 
-void PropertiesWidget::SetGameObject(RENDER_MASTER::IGameObject *go)
+void PropertiesWidget::SetGameObject(IResource *resGO)
 {
 	unsubscribeFromPreviousGO();
 
-	_go = go;
-
-	if (go)
+	if (resGO)
 	{
+		IGameObject *go;
+		resGO->GetPointer((void**)&go);
+		_go = ResourcePtr<IGameObject>(resGO);
+
 		subscribeToGO(go);
 
 		ui->lineEdit->setEnabled(true);
@@ -107,12 +109,14 @@ void PropertiesWidget::SetGameObject(RENDER_MASTER::IGameObject *go)
 		ui->scale_z_sb->clear();
 
 		ui->groupBox->setEnabled(false);
+
+		_go.reset();
 	}
 }
 
 API PropertiesWidget::Call(vec3 *pPos)
 {
-    if (_go)
+	if (_go.get())
     {
         ui->pos_x_sb->setValue((double)pPos->x);
         ui->pos_y_sb->setValue((double)pPos->y);
@@ -123,7 +127,7 @@ API PropertiesWidget::Call(vec3 *pPos)
 
 API PropertiesWidget::Call(quat *rot)
 {
-	if (_go && !block)
+	if (_go.get() && !block)
 	{
 		vec3 eulerAngles = rot->ToEuler();
 		ui->rot_x_sb->setValue((double)eulerAngles.x);
@@ -136,18 +140,23 @@ API PropertiesWidget::Call(quat *rot)
 void PropertiesWidget::onSceneTreeInited(SceneTreeWidget *sceneTree)
 {
 	// selection changed
-	connect(sceneTree, &SceneTreeWidget::selectionChanged, this, &PropertiesWidget::onSelectionChanged, Qt::DirectConnection);	
+	connect(editor, &EditorGlobal::selectionChanged, this, &PropertiesWidget::onSelectionChanged, Qt::DirectConnection);
 }
 
-void PropertiesWidget::onSelectionChanged(IGameObject *go)
+void PropertiesWidget::onSelectionChanged(const std::vector<IResource*>& selectedGameObjects)
 {
 	qDebug() << "PropertiesWidget::onSelectionChanged";
-	SetGameObject(go);
+	if (!editor->IsSomeObjectSelected() || editor->GetNumberSelectedObjects() > 1)
+		SetGameObject(nullptr);
+	else
+	{
+		SetGameObject(selectedGameObjects.at(0));
+	}
 }
 
 void PropertiesWidget::unsubscribeFromPreviousGO()
 {
-	if (_go)
+	if (_go.get())
 	{
 		IPositionEvent *ev;
 		_go->GetPositionEv(&ev);
@@ -167,6 +176,8 @@ void PropertiesWidget::unsubscribeFromPreviousGO()
 		//ui->pos_x_sb->disconnect();
 		//ui->pos_y_sb->disconnect();
 		//ui->pos_z_sb->disconnect();
+
+		_go.reset();
 	}
 }
 
@@ -183,7 +194,7 @@ void PropertiesWidget::subscribeToGO(IGameObject *go)
 	auto conn = connect(ui->lineEdit, &QLineEdit::editingFinished, [=]()
 	{
 		ui->lineEdit->clearFocus();
-		 if (_go)
+		 if (_go.get())
 		 {
 			 const QString newValue = ui->lineEdit->text();
 			 _go->SetName(newValue.toUtf8().data());
@@ -204,7 +215,7 @@ void PropertiesWidget::connectPosition(MySpinBox *w, int xyz_offset)
 {
 	auto conn = connect(w, QOverload<const QString&>::of(&QDoubleSpinBox::valueChanged), [=](const QString &newValue)
 	{
-		if (_go)
+		if (_go.get())
 		{
 			vec3 pos;
 			_go->GetPosition(&pos);
@@ -234,7 +245,7 @@ void PropertiesWidget::connectRotation(MySpinBox *w, int xyz_offset)
 {
 	auto conn = connect(w, QOverload<const QString&>::of(&QDoubleSpinBox::valueChanged), [&](const QString &newValueStr)
 	{
-		if (_go && !signalBlocked)
+		if (_go.get() && !signalBlocked)
 		{
 			quat rot;
 			_go->GetRotation(&rot);

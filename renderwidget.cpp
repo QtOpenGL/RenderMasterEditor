@@ -11,116 +11,119 @@ extern EngineGlobal* eng;
 extern EditorGlobal* editor;
 
 RenderWidget::RenderWidget(QWidget *parent) :
-    QWidget(parent, Qt::MSWindowsOwnDC),
-    ui(new Ui::D3D11Widget)
+	QWidget(parent, Qt::MSWindowsOwnDC),
+	ui(new Ui::D3D11Widget)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 
-    setAttribute(Qt::WA_NoBackground);
-    setAttribute(Qt::WA_NoSystemBackground);
-    setAttribute(Qt::WA_OpaquePaintEvent);
-    setAttribute(Qt::WA_PaintOnScreen);
-    setAttribute(Qt::WA_PaintUnclipped);
-    setAttribute(Qt::WA_NativeWindow);
+	setAttribute(Qt::WA_NoBackground);
+	setAttribute(Qt::WA_NoSystemBackground);
+	setAttribute(Qt::WA_OpaquePaintEvent);
+	setAttribute(Qt::WA_PaintOnScreen);
+	setAttribute(Qt::WA_PaintUnclipped);
+	setAttribute(Qt::WA_NativeWindow);
 #ifdef _WIN32
-    //setAttribute(Qt::WA_TransparentForMouseEvents);
+	//setAttribute(Qt::WA_TransparentForMouseEvents);
 #endif
 
-    //setStyleSheet("background-color: black;");
-    setFocusPolicy(Qt::StrongFocus);
+	//setStyleSheet("background-color: black;");
+	setFocusPolicy(Qt::StrongFocus);
 
-    connect(eng, &EngineGlobal::EngineInited, this, &RenderWidget::onEngineInited, Qt::DirectConnection);
-    connect(eng, &EngineGlobal::EngineBeforeClose, this, &RenderWidget::onEngineClosed, Qt::DirectConnection);
-    connect(eng, &EngineGlobal::OnRender, this, &RenderWidget::onRender, Qt::DirectConnection);
+	connect(eng, &EngineGlobal::EngineInited, this, &RenderWidget::onEngineInited, Qt::DirectConnection);
+	connect(eng, &EngineGlobal::EngineBeforeClose, this, &RenderWidget::onEngineClosed, Qt::DirectConnection);
+	connect(eng, &EngineGlobal::OnRender, this, &RenderWidget::onRender, Qt::DirectConnection);
 	connect(eng, &EngineGlobal::OnUpdate, this, &RenderWidget::onUpdate, Qt::DirectConnection);
 
 	connect(editor, &EditorGlobal::ManipulatorPressed, this, &RenderWidget::onManipulatorPressed, Qt::DirectConnection);
 
-    h = (HWND)winId();
+	h = (HWND)winId();
 }
 
 RenderWidget::~RenderWidget()
 {
-    delete ui;
+	delete ui;
 }
 
 void RenderWidget::resizeEvent(QResizeEvent* evt)
 {
-    Q_UNUSED( evt )
+	Q_UNUSED( evt )
 }
 
 void RenderWidget::paintEvent(QPaintEvent* evt)
 {
-    Q_UNUSED( evt )
+	Q_UNUSED( evt )
 /*
-    if (pCore)
-    {
-        HWND h = (HWND)winId();
-        //pCoreRender->MakeCurrent(&h);
+	if (pCore)
+	{
+		HWND h = (HWND)winId();
+		//pCoreRender->MakeCurrent(&h);
 
-        ICamera *pDefaultCamera{nullptr};
-        pSceneManager->GetDefaultCamera(&pDefaultCamera);
+		ICamera *pDefaultCamera{nullptr};
+		pSceneManager->GetDefaultCamera(&pDefaultCamera);
 
-        //pCoreRender->SetViewport(size().width(), size().height());
+		//pCoreRender->SetViewport(size().width(), size().height());
 
-        pCore->RenderFrame(&h, pDefaultCamera);
+		pCore->RenderFrame(&h, pDefaultCamera);
 
-        pCore->Log("D3D11Widget::paintEvent", RENDER_MASTER::LOG_TYPE::NORMAL);
-    }
-    */
+		pCore->Log("D3D11Widget::paintEvent", RENDER_MASTER::LOG_TYPE::NORMAL);
+	}
+	*/
 }
 
 void RenderWidget::mousePressEvent(QMouseEvent *event)
 {
-    mouse = 1;
-    lastMousePos = event->pos();
-    //pCore->Log("RenderWidget::mousePressEvent()", RENDER_MASTER::LOG_TYPE::NORMAL);
-    QWidget::mousePressEvent(event);
+	mouse = 1;
+	lastMousePos = event->pos();
+	//pCore->Log("RenderWidget::mousePressEvent()", RENDER_MASTER::LOG_TYPE::NORMAL);
+	QWidget::mousePressEvent(event);
 }
 
 void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    mouse = 0;
-    //pCore->Log("RenderWidget::mouseReleaseEvent()", RENDER_MASTER::LOG_TYPE::NORMAL);
-    QWidget::mouseReleaseEvent(event);
+	mouse = 0;
+	//pCore->Log("RenderWidget::mouseReleaseEvent()", RENDER_MASTER::LOG_TYPE::NORMAL);
+	QWidget::mouseReleaseEvent(event);
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (pCore && mouse)
-    {
-        dx = event->pos().x() - lastMousePos.x();
-        dy = event->pos().y() - lastMousePos.y();
-        lastMousePos = event->pos();
-        //pCore->Log("RenderWidget::mouseMoveEvent(QMouseEvent *event)", RENDER_MASTER::LOG_TYPE::NORMAL);
+	if (pCore && mouse)
+	{
+		dx = event->pos().x() - lastMousePos.x();
+		dy = event->pos().y() - lastMousePos.y();
+		lastMousePos = event->pos();
+		//pCore->Log("RenderWidget::mouseMoveEvent(QMouseEvent *event)", RENDER_MASTER::LOG_TYPE::NORMAL);
 
-        QWidget::mouseMoveEvent(event);
-    }
+		QWidget::mouseMoveEvent(event);
+	}
 }
 
 void RenderWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_W) {key_w = 1; }
-    if (event->key() == Qt::Key_S) {key_s = 1; }
-    if (event->key() == Qt::Key_A) {key_a = 1; }
-    if (event->key() == Qt::Key_D) {key_d = 1; }
-    if (event->key() == Qt::Key_Q) {key_q = 1; }
-    if (event->key() == Qt::Key_E) {key_e = 1; }
+	if (event->key() == Qt::Key_W) {key_w = 1; }
+	if (event->key() == Qt::Key_S) {key_s = 1; }
+	if (event->key() == Qt::Key_A) {key_a = 1; }
+	if (event->key() == Qt::Key_D) {key_d = 1; }
+	if (event->key() == Qt::Key_Q) {key_q = 1; }
+	if (event->key() == Qt::Key_E) {key_e = 1; }
 }
 
 void RenderWidget::keyReleaseEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_W) {key_w = 0; }
-    if (event->key() == Qt::Key_S) {key_s = 0; }
-    if (event->key() == Qt::Key_A) {key_a = 0; }
-    if (event->key() == Qt::Key_D) {key_d = 0; }
-    if (event->key() == Qt::Key_Q) {key_q = 0; }
-    if (event->key() == Qt::Key_E) {key_e = 0; }
+	if (event->key() == Qt::Key_W) {key_w = 0; }
+	if (event->key() == Qt::Key_S) {key_s = 0; }
+	if (event->key() == Qt::Key_A) {key_a = 0; }
+	if (event->key() == Qt::Key_D) {key_d = 0; }
+	if (event->key() == Qt::Key_Q) {key_q = 0; }
+	if (event->key() == Qt::Key_E) {key_e = 0; }
 }
 
 void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 {
 	if (MANIPULATOR::TRANSLATE != _currentManipulator)
+		return;
+
+	if (!editor->IsSomeObjectSelected())
 		return;
 
 	INPUT_ATTRUBUTE a;
@@ -136,16 +139,27 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 
 	pCoreRender->SetShader(shader);
 
-	float z = VP.el_2D[2][3];
+	//float z = VP.el_2D[2][3];
 
-	uint w = rect().height();
+	uint h = rect().height();
 
-	mat4 M;
-	M.el_2D[0][0] = 80.0f * z / w;
-	M.el_2D[1][1] = 80.0f * z / w;
-	M.el_2D[2][2] = 80.0f * z / w;
+	mat4 modelWorldTransform = editor->GetSelectionCeneter();
 
-	params.MVP = VP * M;
+	mat4 axisWorldTransform;
+
+	axisWorldTransform.el_2D[0][3] = modelWorldTransform.el_2D[0][3];
+	axisWorldTransform.el_2D[1][3] = modelWorldTransform.el_2D[1][3];
+	axisWorldTransform.el_2D[2][3] = modelWorldTransform.el_2D[2][3];
+
+	vec4 view4 = VP * vec4(axisWorldTransform.el_2D[0][3], axisWorldTransform.el_2D[1][3], axisWorldTransform.el_2D[2][3], 1.0f);
+	vec3 view(view4);
+	float dist = view.Lenght();
+
+	axisWorldTransform.el_2D[0][0] = (80.0f / h) * dist;
+	axisWorldTransform.el_2D[1][1] = (80.0f / h) * dist;
+	axisWorldTransform.el_2D[2][2] = (80.0f / h) * dist;
+
+	params.MVP = VP * axisWorldTransform;
 	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	pCoreRender->SetUniformBufferData(parameters.get(), &params.main_color);
@@ -299,12 +313,12 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
-    Q_UNUSED( pCoreIn )
+	Q_UNUSED( pCoreIn )
 
 	parameters.reset();
 	_pAxesArrowMesh.reset();
 	_pAxesMesh.reset();
 	_pGridMesh.reset();
 
-    pCore = nullptr;
+	pCore = nullptr;
 }
