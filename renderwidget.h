@@ -41,13 +41,15 @@ class RenderWidget : public QWidget
 //	ICoreMesh *_pAxesArrowMesh{nullptr};
 //	ICoreMesh *_pGridMesh{nullptr};
 
-	struct alignas(16) EveryFrameParameters
+	#pragma pack(push, 4)
+	struct EveryFrameParameters
 	{
 		vec4 main_color;
 		vec4 nL;
 		mat4 NM;
 		mat4 MVP;
 	} params;
+	#pragma pack(pop)
 
 	// resources
 	ResourcePtr<IUniformBuffer> parameters;
