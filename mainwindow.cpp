@@ -3,6 +3,7 @@
 #include <QCalendarWidget>
 #include <QFile>
 #include <QShortcut>
+#include <QFileDialog>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -23,6 +24,11 @@
 
 extern EditorGlobal *editor;
 extern EngineGlobal *eng;
+
+using RENDER_MASTER::ICore;
+using RENDER_MASTER::ISceneManager;
+using RENDER_MASTER::ISubSystem;
+
 
 static int CONTENT_COUNT = 0;
 
@@ -302,10 +308,6 @@ void MainWindow::on_actionSave_scene_triggered()
 {
 	if (!eng) return;
 
-	using RENDER_MASTER::ICore;
-	using RENDER_MASTER::ISceneManager;
-	using RENDER_MASTER::ISubSystem;
-
 	ICore *core;
 	eng->GetCore(core);
 
@@ -313,4 +315,31 @@ void MainWindow::on_actionSave_scene_triggered()
 	core->GetSubSystem((ISubSystem**)&sm, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 
 	sm->SaveScene("Scene.yaml");
+}
+
+void MainWindow::on_actionLoad_Scene_triggered()
+{
+	if (!eng) return;
+
+	ICore *core;
+	eng->GetCore(core);
+
+	auto path = eng->GetProjectDir();
+
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Scene"), path, tr("Scene file (*.yaml)"));
+
+	qDebug() << "Loading Scene: " << fileName;
+}
+
+void MainWindow::on_actionClose_Scene_triggered()
+{
+	if (!eng) return;
+
+	ICore *core;
+	eng->GetCore(core);
+
+	ISceneManager *sm;
+	core->GetSubSystem((ISubSystem**)&sm, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
+
+	sm->CloseScene();
 }

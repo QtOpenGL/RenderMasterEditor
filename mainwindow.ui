@@ -43,6 +43,9 @@
     <addaction name="actionOpen_scene"/>
     <addaction name="separator"/>
     <addaction name="actionSave_scene"/>
+    <addaction name="actionLoad_Scene"/>
+    <addaction name="actionScene_Reload"/>
+    <addaction name="actionClose_Scene"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -276,6 +279,24 @@
    </property>
    <property name="text">
     <string>actionManipulatorRotate</string>
+   </property>
+  </action>
+  <action name="actionScene_Reload">
+   <property name="text">
+    <string>Scene Reload</string>
+   </property>
+  </action>
+  <action name="actionLoad_Scene">
+   <property name="text">
+    <string>Load Scene</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionClose_Scene">
+   <property name="text">
+    <string>Close Scene</string>
    </property>
   </action>
  </widget>

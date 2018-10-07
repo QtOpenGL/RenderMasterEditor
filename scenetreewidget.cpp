@@ -15,13 +15,16 @@ extern EngineGlobal* eng;
 extern EditorGlobal *editor;
 
 
-RenderMasterSceneManagerAdapter::RenderMasterSceneManagerAdapter(QObject *parent)  : QAbstractItemModel( parent )
+SceneManagerModel::SceneManagerModel(QObject *parent)  : QAbstractItemModel( parent )
 {
-	connect(eng, &EngineGlobal::EngineInited, this, &RenderMasterSceneManagerAdapter::onEngineInited, Qt::DirectConnection);
-	connect(eng, &EngineGlobal::EngineBeforeClose, this, &RenderMasterSceneManagerAdapter::onEngineClosed, Qt::DirectConnection);
+	_addObjectHandler = std::make_unique<AddGameObjectHandler>(this);
+	_deleteObjectHandler = std::make_unique<DeleteGameObjectHandler>(this);
+
+	connect(eng, &EngineGlobal::EngineInited, this, &SceneManagerModel::onEngineInited, Qt::DirectConnection);
+	connect(eng, &EngineGlobal::EngineBeforeClose, this, &SceneManagerModel::onEngineClosed, Qt::DirectConnection);
 }
 
-int RenderMasterSceneManagerAdapter::rowCount(const QModelIndex &parent) const
+int SceneManagerModel::rowCount(const QModelIndex &parent) const
 {
 	if (!sm) return 0;
 
@@ -30,29 +33,20 @@ int RenderMasterSceneManagerAdapter::rowCount(const QModelIndex &parent) const
 		return 0;
 	}
 
-	IResourceEvent *pGameObjectEvent;
-	sm->GetGameObjectAddedEvent(&pGameObjectEvent);
-	pGameObjectEvent->Subscribe((IResourceEventSubscriber*)this);
-
 	uint rootGameObjects;
 	sm->GetChilds(&rootGameObjects, nullptr);
 
 	return rootGameObjects;
 }
 
-int RenderMasterSceneManagerAdapter::columnCount(const QModelIndex &parent ) const
+int SceneManagerModel::columnCount(const QModelIndex &parent ) const
 {
 	return 1;
 }
 
-QModelIndex RenderMasterSceneManagerAdapter::index(int row, int column, const QModelIndex &parent ) const
+QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &parent ) const
 {
 	if (!sm) return QModelIndex();
-
-//  if( !parent.isValid() )
-//	parentObject = m_root;
-//  else
-//	parentObject = static_cast<QObject*>( parent.internalPointer() );
 
 	if( parent.isValid() )
 	{
@@ -72,7 +66,7 @@ QModelIndex RenderMasterSceneManagerAdapter::index(int row, int column, const QM
 		return QModelIndex();
 }
 
-QModelIndex RenderMasterSceneManagerAdapter::parent(const QModelIndex &index) const
+QModelIndex SceneManagerModel::parent(const QModelIndex &index) const
 {
   //if( !index.isValid() )
 	return QModelIndex();
@@ -88,7 +82,7 @@ QModelIndex RenderMasterSceneManagerAdapter::parent(const QModelIndex &index) co
 //  return createIndex( grandParentObject->children().indexOf( parentObject ), 0, parentObject );
 }
 
-QVariant RenderMasterSceneManagerAdapter::data( const QModelIndex &index, int role) const
+QVariant SceneManagerModel::data( const QModelIndex &index, int role) const
 {
   if( !index.isValid() )
 	return QVariant();
@@ -108,9 +102,6 @@ QVariant RenderMasterSceneManagerAdapter::data( const QModelIndex &index, int ro
 	}
 	break;
 
-//    case 1:
-//      return static_cast<QObject*>( index.internalPointer() )->metaObject()->className();
-
 	default:
 	  break;
 	}
@@ -121,9 +112,6 @@ QVariant RenderMasterSceneManagerAdapter::data( const QModelIndex &index, int ro
 	{
 	case 0:
 	  return QString( "The name of the object." );
-
-//    case 1:
-//      return QString( "The name of the class." );
 
 	default:
 	  break;
@@ -137,7 +125,7 @@ QVariant RenderMasterSceneManagerAdapter::data( const QModelIndex &index, int ro
 
   return QVariant();
 }
-bool RenderMasterSceneManagerAdapter::setData(const QModelIndex &index, const QVariant &value, int role)
+bool SceneManagerModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	if (index.isValid() && role == Qt::EditRole && value.toString() != "")
 	{
@@ -157,7 +145,7 @@ bool RenderMasterSceneManagerAdapter::setData(const QModelIndex &index, const QV
 // DRAG & DROP
 ////////////////////////////////////
 
-Qt::ItemFlags RenderMasterSceneManagerAdapter::flags(const QModelIndex &index) const
+Qt::ItemFlags SceneManagerModel::flags(const QModelIndex &index) const
 {
 	 Qt::ItemFlags defaultFlags = QAbstractItemModel::flags(index);
 
@@ -167,7 +155,7 @@ Qt::ItemFlags RenderMasterSceneManagerAdapter::flags(const QModelIndex &index) c
 		 return Qt::ItemIsDropEnabled |  Qt::ItemIsEditable | defaultFlags;
 }
 
-QMimeData* RenderMasterSceneManagerAdapter::mimeData(const QModelIndexList &indexes) const
+QMimeData* SceneManagerModel::mimeData(const QModelIndexList &indexes) const
 {
 	Q_ASSERT(false); // not impl
 	return nullptr;
@@ -190,7 +178,7 @@ QMimeData* RenderMasterSceneManagerAdapter::mimeData(const QModelIndexList &inde
 //	return mimeDataPtr;
 }
 
-QStringList RenderMasterSceneManagerAdapter::mimeTypes() const
+QStringList SceneManagerModel::mimeTypes() const
  {
 	 QStringList types;
 	 types << "application/vnd.text.list";
@@ -231,7 +219,7 @@ void add_childs(std::unordered_set<QObject*>& objs)
 	}
 }
 
-bool RenderMasterSceneManagerAdapter::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool SceneManagerModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
 //	if (action == Qt::IgnoreAction) {
 //		return true;
@@ -268,7 +256,7 @@ bool RenderMasterSceneManagerAdapter::dropMimeData(const QMimeData* data, Qt::Dr
 	return false;
 }
 
-bool RenderMasterSceneManagerAdapter::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+bool SceneManagerModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
 	Q_UNUSED(action);
 	Q_UNUSED(row);
@@ -303,9 +291,17 @@ bool RenderMasterSceneManagerAdapter::canDropMimeData(const QMimeData *data, Qt:
 
 }
 
-void RenderMasterSceneManagerAdapter::onEngineInited(RENDER_MASTER::ICore *pCore)
+void SceneManagerModel::onEngineInited(RENDER_MASTER::ICore *pCore)
 {
 	pCore->GetSubSystem((ISubSystem**)&sm, SUBSYSTEM_TYPE::SCENE_MANAGER);
+
+	IResourceEvent *pGameObjectEvent;
+
+	sm->GetGameObjectAddedEvent(&pGameObjectEvent);
+	pGameObjectEvent->Subscribe((IResourceEventSubscriber*)_addObjectHandler.get());
+
+	sm->GetDeleteGameObjectEvent(&pGameObjectEvent);
+	pGameObjectEvent->Subscribe((IResourceEventSubscriber*)_deleteObjectHandler.get());
 
 //	for (int i = 0; i< rootGameObjects; i++)
 //	{
@@ -325,15 +321,25 @@ void RenderMasterSceneManagerAdapter::onEngineInited(RENDER_MASTER::ICore *pCore
 	emit layoutChanged();
 }
 
-void RenderMasterSceneManagerAdapter::onEngineClosed(RENDER_MASTER::ICore *pCore)
+void SceneManagerModel::onEngineClosed(RENDER_MASTER::ICore *pCore)
 {
+	IResourceEvent *pGameObjectEvent;
+	sm->GetGameObjectAddedEvent(&pGameObjectEvent);
+	pGameObjectEvent->Unsubscribe((IResourceEventSubscriber*)_addObjectHandler.get());
+
 	pCore = nullptr;
 	sm = nullptr;
 }
 
-API RenderMasterSceneManagerAdapter::Call(IResource *pGameObject)
+API AddGameObjectHandler::Call(IResource *pGameObject)
 {
-	emit layoutChanged();
+	emit _parent->layoutChanged();
+	return S_OK;
+}
+
+API DeleteGameObjectHandler::Call(IResource *pGameObject)
+{
+	// not implemented
 	return S_OK;
 }
 
@@ -353,7 +359,7 @@ SceneTreeWidget::SceneTreeWidget(QWidget *parent) :
 	ui->treeView->setAcceptDrops(true);
 	ui->treeView->setDropIndicatorShown(true);
 
-	_model = new RenderMasterSceneManagerAdapter(nullptr);
+	_model = new SceneManagerModel(nullptr);
 	ui->treeView->setModel(_model);
 
 	auto *selectionModel = ui->treeView->selectionModel();

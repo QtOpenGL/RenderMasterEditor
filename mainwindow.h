@@ -42,6 +42,10 @@ private slots:
 
 	void on_actionSave_scene_triggered();
 
+	void on_actionLoad_Scene_triggered();
+
+	void on_actionClose_Scene_triggered();
+
 protected:
     virtual void closeEvent(QCloseEvent* e);
     virtual void contextMenuEvent(QContextMenuEvent* e);

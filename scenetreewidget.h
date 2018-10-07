@@ -5,43 +5,73 @@
 #include <QWidget>
 #include <QAbstractItemModel>
 #include <QItemSelection>
+#include <memory.h>
+
+using RENDER_MASTER::ResourcePtr;
+using RENDER_MASTER::IGameObject;
 
 
-class RenderMasterSceneManagerAdapter : public QAbstractItemModel, RENDER_MASTER::IResourceEventSubscriber
+class SceneManagerModel;
+
+
+// This class handled addition gameobjects when engine raise event
+//
+class AddGameObjectHandler : RENDER_MASTER::IResourceEventSubscriber
+{
+	SceneManagerModel *_parent;
+public:
+	AddGameObjectHandler(SceneManagerModel *parent) : _parent(parent){}
+	API Call(RENDER_MASTER::IResource *pGameObject) override;
+};
+
+
+// This class handled deletion gameobjects when engine raise event
+//
+class DeleteGameObjectHandler : RENDER_MASTER::IResourceEventSubscriber
+{
+	SceneManagerModel *_parent;
+public:
+	DeleteGameObjectHandler(SceneManagerModel *parent) : _parent(parent){}
+	API Call(RENDER_MASTER::IResource *pGameObject) override;
+};
+
+
+//
+//
+class SceneManagerModel : public QAbstractItemModel
 {
 	Q_OBJECT
 
-	RENDER_MASTER::ISceneManager *sm{nullptr};
+	friend DeleteGameObjectHandler;
+
+	RENDER_MASTER::ISceneManager *sm = nullptr;
+
+	std::unique_ptr<AddGameObjectHandler> _addObjectHandler;
+	std::unique_ptr<DeleteGameObjectHandler> _deleteObjectHandler;
 
 public:
-	RenderMasterSceneManagerAdapter(QObject *parent);
+	SceneManagerModel(QObject *parent);
 
-	// STANDARD FUNCTIONS
+	// Standart functions
 	virtual int rowCount( const QModelIndex &parent = QModelIndex() ) const override;
 	virtual int columnCount( const QModelIndex &parent = QModelIndex() ) const;
 	virtual QModelIndex index( int row, int column, const QModelIndex &parent = QModelIndex() ) const override;
 	virtual QModelIndex parent( const QModelIndex &index ) const override;
 	virtual QVariant data( const QModelIndex &index, int role ) const override;
 
-	// EDIT
+	// Editing
 	virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-	// DRAG & DROP
+	// Drag & Drop
 	virtual Qt::ItemFlags flags(const QModelIndex &index) const override;
 	virtual QMimeData* mimeData(const QModelIndexList &indexes) const override;
 	virtual QStringList mimeTypes() const override;
 	virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
 	virtual bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
 
-	// IGameObjectEventSubscriber interface
-public:
-	API Call(RENDER_MASTER::IResource *pGameObject) override;
-
-
 private slots:
 	void onEngineInited(RENDER_MASTER::ICore *pCore);
 	void onEngineClosed(RENDER_MASTER::ICore *pCore);
-
 };
 
 
@@ -53,7 +83,7 @@ class SceneTreeWidget : public QWidget
 {
     Q_OBJECT
 
-	RenderMasterSceneManagerAdapter *_model{nullptr};
+	SceneManagerModel *_model{nullptr};
 
 public:
     explicit SceneTreeWidget(QWidget *parent = 0);
@@ -67,7 +97,6 @@ private:
 private slots:
 	void _selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 	void _currentChanged(const QModelIndex &current, const QModelIndex &previous);
-
 
 };
 
