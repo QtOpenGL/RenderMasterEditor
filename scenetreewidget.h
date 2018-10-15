@@ -97,6 +97,7 @@ private:
 private slots:
 	void _selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 	void _currentChanged(const QModelIndex &current, const QModelIndex &previous);
+	void _doubleClickOnItem();
 
 };
 

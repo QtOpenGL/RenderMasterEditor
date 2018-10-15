@@ -25,3 +25,19 @@ void EditorGlobal::ChangeSelection(const std::vector<IResource *> &selectedGameO
 
 	selectionChanged(selectedGameObjects);
 }
+
+void EditorGlobal::RaiseFocusOnSelevtedObjects()
+{
+	if (_someObejctSelected > 0)
+	{
+		vec3 worldCeneter;
+		worldCeneter.x = _selectionCenterWorldTransform.el_2D[0][3];
+		worldCeneter.y = _selectionCenterWorldTransform.el_2D[1][3];
+		worldCeneter.z = _selectionCenterWorldTransform.el_2D[2][3];
+
+		AABB aabb = {-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f};
+
+		emit OnFocusAtSelectded(worldCeneter, aabb);
+	}
+}
+

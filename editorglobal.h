@@ -38,6 +38,10 @@ public:
 	int GetNumberSelectedObjects() { return _numberSelectedObjects; }
 	void ChangeSelection(const std::vector<IResource*>& selectedGameObjects);
 
+	// Focus
+	//
+	void RaiseFocusOnSelevtedObjects();
+
 signals:
 
 	void SceneTreeInited(SceneTreeWidget *sceneTreeWidget);
@@ -49,6 +53,10 @@ signals:
 	// Objects Selection
 	//
 	void selectionChanged(const std::vector<IResource*>& selectedObjects);
+
+	// Focus Event
+	//
+	void OnFocusAtSelectded(const vec3& worldCeneter, const RENDER_MASTER::AABB& aabb);
 
 public slots:
 };

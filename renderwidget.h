@@ -37,6 +37,12 @@ class RenderWidget : public QWidget
     int key_q{};
     int key_e{};
 
+	int isFocusing = 0;
+	vec3 focusingTargetPosition;
+
+	const float rotateSpeed = 13.0f;
+	const float moveSpeed = 40.0f;
+
 //	ICoreMesh *_pAxesMesh{nullptr};
 //	ICoreMesh *_pAxesArrowMesh{nullptr};
 //	ICoreMesh *_pGridMesh{nullptr};
@@ -84,6 +90,7 @@ private slots:
     void onRender();
 	void onUpdate(float dt);
 	void onManipulatorPressed(MANIPULATOR m);
+	void onFocusAtSelected(const vec3& worldCeneter, const RENDER_MASTER::AABB& aabb);
 
 private:
 

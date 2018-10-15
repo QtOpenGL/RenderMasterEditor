@@ -28,10 +28,8 @@ int SceneManagerModel::rowCount(const QModelIndex &parent) const
 {
 	if (!sm) return 0;
 
-	if( parent.isValid() )
-	{
+	if(parent.isValid())
 		return 0;
-	}
 
 	uint rootGameObjects;
 	sm->GetChilds(&rootGameObjects, nullptr);
@@ -105,20 +103,7 @@ QVariant SceneManagerModel::data( const QModelIndex &index, int role) const
 	default:
 	  break;
 	}
-  }
-  else if( role == Qt::ToolTipRole )
-  {
-	switch( index.column() )
-	{
-	case 0:
-	  return QString( "The name of the object." );
-
-	default:
-	  break;
-	}
-  }
-
-  else if (role == Qt::DecorationRole)
+  } else if (role == Qt::DecorationRole)
   {
 		return QIcon(":/icons/cube.png");
   }
@@ -365,6 +350,8 @@ SceneTreeWidget::SceneTreeWidget(QWidget *parent) :
 	auto *selectionModel = ui->treeView->selectionModel();
 	connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(_selectionChanged(const QItemSelection&,const QItemSelection&)));
 	connect(selectionModel, SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(_currentChanged(const QModelIndex &, const QModelIndex &)));
+
+	connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(_doubleClickOnItem()));
 }
 
 SceneTreeWidget::~SceneTreeWidget()
@@ -413,6 +400,11 @@ void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIn
 		vec.push_back(res);
 		editor->ChangeSelection(vec);
 	}
+}
+
+void SceneTreeWidget::_doubleClickOnItem()
+{
+	editor->RaiseFocusOnSelevtedObjects();
 }
 
 //void SceneTreeWidget::_add_game_object(IGameObject *go, int root, IGameObject *parent)

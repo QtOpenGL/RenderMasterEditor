@@ -2,8 +2,11 @@
 #include "ui_dd3d11widget.h"
 #include "EngineGlobal.h"
 #include "Engine.h"
+#include "common.h"
 #include <QMouseEvent>
 #include <QDebug>
+#include <math.h>
+#include <algorithm>
 
 using namespace RENDER_MASTER;
 
@@ -35,6 +38,7 @@ RenderWidget::RenderWidget(QWidget *parent) :
 	connect(eng, &EngineGlobal::OnUpdate, this, &RenderWidget::onUpdate, Qt::DirectConnection);
 
 	connect(editor, &EditorGlobal::ManipulatorPressed, this, &RenderWidget::onManipulatorPressed, Qt::DirectConnection);
+	connect(editor, &EditorGlobal::OnFocusAtSelectded, this, &RenderWidget::onFocusAtSelected, Qt::DirectConnection);
 
 	h = (HWND)winId();
 }
@@ -239,54 +243,99 @@ void RenderWidget::onUpdate(float dt)
 	if (!pCamera)
 		return; // no camera
 
-	const float moveSpeed = 40.0f;
-
 	vec3 pos;
 	pCamera->GetPosition(&pos);
 
-	mat4 M;
-	pCamera->GetModelMatrix(&M);
-
-	vec3 orth_direction = vec3(M.Column(0)); // X local
-	vec3 forward_direction = -vec3(M.Column(2)); // -Z local
-	vec3 up_direction = vec3(0.0f, 0.0f, 1.0f); // Z world
-
-	if (key_a)
-		pos -= orth_direction * dt * moveSpeed;
-
-	if (key_d)
-		pos += orth_direction * dt * moveSpeed;
-
-	if (key_w)
-		pos += forward_direction * dt * moveSpeed;
-
-	if (key_s)
-		pos -= forward_direction * dt * moveSpeed;
-
-	if (key_q)
-		pos -= up_direction * dt * moveSpeed;
-
-	if (key_e)
-		pos += up_direction * dt * moveSpeed;
-
-	pCamera->SetPosition(&pos);
-
-	if (mouse)
+	if (isFocusing) // we are still focus
 	{
-		const float rotSpeed = 13.0f;
-		quat rot;
-		pCamera->GetRotation(&rot);
-		quat dxRot = quat(-dy * dt * rotSpeed, 0.0f, 0.0f);
-		quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotSpeed);
-		rot = dyRot * rot * dxRot;
-		pCamera->SetRotation(&rot);
+		pos = lerp(pos, focusingTargetPosition, dt * 10.0f);
+		pCamera->SetPosition(&pos);
 
-		dx = 0.0f;
-		dy = 0.0f;
+		if ((pos - focusingTargetPosition).Lenght() < 0.01f)
+			isFocusing = 0;
+	} else
+	{
+		mat4 M;
+		pCamera->GetModelMatrix(&M);
+
+		vec3 orth_direction = vec3(M.Column(0)); // X local
+		vec3 forward_direction = -vec3(M.Column(2)); // -Z local
+		vec3 up_direction = vec3(0.0f, 0.0f, 1.0f); // Z world
+
+		if (key_a)
+			pos -= orth_direction * dt * moveSpeed;
+
+		if (key_d)
+			pos += orth_direction * dt * moveSpeed;
+
+		if (key_w)
+			pos += forward_direction * dt * moveSpeed;
+
+		if (key_s)
+			pos -= forward_direction * dt * moveSpeed;
+
+		if (key_q)
+			pos -= up_direction * dt * moveSpeed;
+
+		if (key_e)
+			pos += up_direction * dt * moveSpeed;
+
+		pCamera->SetPosition(&pos);
+
+		if (mouse)
+		{
+			quat rot;
+			pCamera->GetRotation(&rot);
+			quat dxRot = quat(-dy * dt * rotateSpeed, 0.0f, 0.0f);
+			quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotateSpeed);
+			rot = dyRot * rot * dxRot;
+			pCamera->SetRotation(&rot);
+
+			dx = 0.0f;
+			dy = 0.0f;
+		}
 	}
 }
 
 void RenderWidget::onManipulatorPressed(MANIPULATOR m) { _currentManipulator = m; }
+
+void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTER::AABB& aabb)
+{
+	if (!pCore)
+		return; // engine not loaded
+
+	ICamera *pCamera = nullptr;
+	pSceneManager->GetDefaultCamera(&pCamera);
+
+	if (!pCamera)
+		return; // no camera
+
+	isFocusing = 1;
+
+	// calculate target position
+	//
+
+	//
+	mat4 ModelMat;
+	pCamera->GetModelMatrix(&ModelMat);
+	vec3 view = -ModelMat.Column3(2).Normalized();
+
+	//
+	float fovDegs;
+	pCamera->GetFovAngle(&fovDegs);
+	float fovRads = fovDegs * DEGTORAD;
+
+	//
+	float objectHalfSize = max(max(abs(aabb.maxX - aabb.minX), abs(aabb.maxY - aabb.minY)), abs(aabb.maxZ - aabb.minZ));
+
+	//
+	float distance = objectHalfSize / tan(fovRads * 0.5f);
+
+	focusingTargetPosition = worldCenter - view * distance;
+
+	qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);
+
+}
 
 void RenderWidget::onEngineInited(ICore *pCoreIn)
 {

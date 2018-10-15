@@ -25,30 +25,20 @@ public:
 
 private slots:
     void on_pushButton_clicked();
-
     void on_actionNew_scene_triggered();
-
     void on_actionExit_triggered();
-
     void on_actionBuild_Standalone_triggered();
-
 	void on_actionAbout_Render_Master_triggered();
-
 	void on_actionactionManipulatorRotate_triggered(bool checked);
-
 	void on_actionManipulatorScale_triggered(bool checked);
-
 	void on_actionactionManipulatorTransform_triggered(bool checked);
-
 	void on_actionSave_scene_triggered();
-
 	void on_actionLoad_Scene_triggered();
-
 	void on_actionClose_Scene_triggered();
 
 protected:
     virtual void closeEvent(QCloseEvent* e);
-    virtual void contextMenuEvent(QContextMenuEvent* e);
+	virtual void contextMenuEvent(QContextMenuEvent* e);
 
 private:
     Ui::MainWindow *ui;

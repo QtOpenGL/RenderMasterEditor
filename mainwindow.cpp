@@ -151,6 +151,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	QShortcut *shortcut_light = new QShortcut(QKeySequence(Qt::Key_F6), this);
 	QObject::connect(shortcut_light, &QShortcut::activated, apply_light_style);
 
+	QShortcut *shortcut_focus = new QShortcut(QKeySequence(Qt::Key_F), this);
+	QObject::connect(shortcut_focus, &QShortcut::activated, [&]() { editor->RaiseFocusOnSelevtedObjects(); });
+
 
     //ConsoleWidget *c = new ConsoleWidget(this);
     //c->show();
@@ -258,7 +261,6 @@ void MainWindow::contextMenuEvent(QContextMenuEvent* e)
     m->exec(QCursor::pos());
     delete m;
 }
-
 
 void MainWindow::on_actionAbout_Render_Master_triggered()
 {

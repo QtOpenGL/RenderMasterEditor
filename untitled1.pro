@@ -51,7 +51,8 @@ HEADERS  += mainwindow.h \
     editorglobal.h \
     myspinbox.h \
     mylineedit.h \
-    about.h
+    about.h \
+    common.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
