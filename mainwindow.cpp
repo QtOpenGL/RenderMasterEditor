@@ -328,9 +328,14 @@ void MainWindow::on_actionLoad_Scene_triggered()
 
 	auto path = eng->GetProjectDir();
 
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Scene"), path, tr("Scene file (*.yaml)"));
+	//QString fileName = QFileDialog::getOpenFileName(this, tr("Open Scene"), path, tr("Scene file (*.yaml)"));
 
-	qDebug() << "Loading Scene: " << fileName;
+	qDebug() << "Loading Scene: " << "Scene.yaml";
+
+	ISceneManager *sm;
+	core->GetSubSystem((ISubSystem**)&sm, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
+
+	sm->LoadScene("Scene.yaml");
 }
 
 void MainWindow::on_actionClose_Scene_triggered()
