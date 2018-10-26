@@ -71,15 +71,15 @@ int main(int argc, char *argv[])
 		pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
 		model1 = pResManager->loadModel("box.fbx");
-		model2 = pResManager->loadModel("box.fbx");
-		model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
+		//model2 = pResManager->loadModel("box.fbx");
+		//model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
 	}else
 		qWarning() << "Failed to initialize RenderMaster";
 
     int ret = a.exec();
 
 	model1.reset();
-	model2.reset();
+	//model2.reset();
 
 	if (SUCCEEDED(rm_inited))
     {

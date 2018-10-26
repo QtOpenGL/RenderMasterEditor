@@ -32,7 +32,7 @@ int SceneManagerModel::rowCount(const QModelIndex &parent) const
 		return 0;
 
 	uint rootGameObjects;
-	sm->GetChilds(&rootGameObjects, nullptr);
+	sm->GetNumberOfChilds(&rootGameObjects, nullptr);
 
 	return rootGameObjects;
 }
@@ -52,7 +52,7 @@ QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &par
 	}
 
 	uint rootGameObjects;
-	sm->GetChilds(&rootGameObjects, nullptr);
+	sm->GetNumberOfChilds(&rootGameObjects, nullptr);
 
 	if( 0 <= row && row < rootGameObjects )
 	{
