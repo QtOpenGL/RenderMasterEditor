@@ -26,7 +26,7 @@ class RenderWidget : public QWidget
 	RENDER_MASTER::IResourceManager *pResMan{nullptr};
    // RENDER_MASTER::ICamera *pCamera{nullptr};
 
-    int mouse{};
+	int rightMouse{};
     QPoint lastMousePos;
     float dx{}, dy{};
 

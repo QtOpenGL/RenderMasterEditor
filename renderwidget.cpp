@@ -76,30 +76,35 @@ void RenderWidget::paintEvent(QPaintEvent* evt)
 
 void RenderWidget::mousePressEvent(QMouseEvent *event)
 {
-	mouse = 1;
-	lastMousePos = event->pos();
-	//pCore->Log("RenderWidget::mousePressEvent()", RENDER_MASTER::LOG_TYPE::NORMAL);
+	if (event->button() == Qt::RightButton)
+	{
+		//qDebug() << "RenderWidget::mousePressEvent(QMouseEvent *event)";
+		rightMouse = 1;
+		lastMousePos = event->pos();
+	}
 	QWidget::mousePressEvent(event);
 }
 
 void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-	mouse = 0;
-	//pCore->Log("RenderWidget::mouseReleaseEvent()", RENDER_MASTER::LOG_TYPE::NORMAL);
+	if (event->button() == Qt::RightButton)
+	{
+		//qDebug() << "RenderWidget::mouseReleaseEvent(QMouseEvent *event)";
+		rightMouse = 0;
+	}
 	QWidget::mouseReleaseEvent(event);
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	if (pCore && mouse)
+	if (pCore && rightMouse /*&& event->button() == Qt::RightButton*/)
 	{
 		dx = event->pos().x() - lastMousePos.x();
 		dy = event->pos().y() - lastMousePos.y();
 		lastMousePos = event->pos();
-		//pCore->Log("RenderWidget::mouseMoveEvent(QMouseEvent *event)", RENDER_MASTER::LOG_TYPE::NORMAL);
-
-		QWidget::mouseMoveEvent(event);
+		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event)";
 	}
+	QWidget::mouseMoveEvent(event);
 }
 
 void RenderWidget::keyPressEvent(QKeyEvent *event)
@@ -282,7 +287,7 @@ void RenderWidget::onUpdate(float dt)
 
 		pCamera->SetPosition(&pos);
 
-		if (mouse)
+		if (rightMouse)
 		{
 			quat rot;
 			pCamera->GetRotation(&rot);

@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::MSAA_8X | glFlag, "resources", &h);
 
 	ResourcePtr<IModel> model1;
-	ResourcePtr<IModel> model2;
+	//ResourcePtr<IModel> model2;
 
 	if (SUCCEEDED(rm_inited))
 	{
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
 		pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
 		model1 = pResManager->loadModel("box.fbx");
-		//model2 = pResManager->loadModel("box.fbx");
-		//model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
+		//model2 = pResManager->loadModel("sphere.fbx");
+		model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
 	}else
 		qWarning() << "Failed to initialize RenderMaster";
 

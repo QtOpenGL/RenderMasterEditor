@@ -254,13 +254,13 @@ void MainWindow::closeEvent(QCloseEvent* e)
     storeDataHelper("ContainerWidget", _container->saveState());
 }
 
-void MainWindow::contextMenuEvent(QContextMenuEvent* e)
-{
-    Q_UNUSED(e);
-    QMenu* m = _container->createContextMenu();
-    m->exec(QCursor::pos());
-    delete m;
-}
+//void MainWindow::contextMenuEvent(QContextMenuEvent* e)
+//{
+//    Q_UNUSED(e);
+//    QMenu* m = _container->createContextMenu();
+//    m->exec(QCursor::pos());
+//    delete m;
+//}
 
 void MainWindow::on_actionAbout_Render_Master_triggered()
 {
