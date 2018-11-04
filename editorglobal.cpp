@@ -11,6 +11,7 @@ void EditorGlobal::ChangeSelection(const std::vector<IResource *> &selectedGameO
 	{
 		_someObejctSelected = 0;
 		_numberSelectedObjects = 0;
+		_selectionGameObject = nullptr;
 		selectionChanged(std::vector<IResource*>());
 		return;
 	}
@@ -22,6 +23,7 @@ void EditorGlobal::ChangeSelection(const std::vector<IResource *> &selectedGameO
 	IGameObject *go;
 	selectedGameObjects[0]->GetPointer((void**)&go);
 	go->GetModelMatrix(&_selectionCenterWorldTransform);
+	_selectionGameObject = selectedGameObjects[0];
 
 	selectionChanged(selectedGameObjects);
 }

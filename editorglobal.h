@@ -21,6 +21,7 @@ class EditorGlobal : public QObject
 {
     Q_OBJECT
 
+	IResource *_selectionGameObject = nullptr;
 	mat4 _selectionCenterWorldTransform;
 	int _someObejctSelected = 0;
 	int _numberSelectedObjects = 0;
@@ -34,6 +35,7 @@ public:
 	// Objects Selection
 	//
 	mat4 GetSelectionCeneter() { return _selectionCenterWorldTransform; }
+	IResource* GetSelectionObject() { return _selectionGameObject; }
 	int IsSomeObjectSelected() { return _someObejctSelected; }
 	int GetNumberSelectedObjects() { return _numberSelectedObjects; }
 	void ChangeSelection(const std::vector<IResource*>& selectedGameObjects);

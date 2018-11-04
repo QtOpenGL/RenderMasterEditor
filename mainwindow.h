@@ -36,6 +36,8 @@ private slots:
 	void on_actionLoad_Scene_triggered();
 	void on_actionClose_Scene_triggered();
 
+	void cloneNode();
+
 protected:
     virtual void closeEvent(QCloseEvent* e);
 	//virtual void contextMenuEvent(QContextMenuEvent* e);

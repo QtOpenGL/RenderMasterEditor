@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 		model1 = pResManager->loadModel("box.fbx");
 		//model2 = pResManager->loadModel("sphere.fbx");
-		model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
+		//model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
 	}else
 		qWarning() << "Failed to initialize RenderMaster";
 

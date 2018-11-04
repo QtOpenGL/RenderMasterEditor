@@ -154,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	QShortcut *shortcut_focus = new QShortcut(QKeySequence(Qt::Key_F), this);
 	QObject::connect(shortcut_focus, &QShortcut::activated, [&]() { editor->RaiseFocusOnSelevtedObjects(); });
 
+	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(cloneNode()));
 
     //ConsoleWidget *c = new ConsoleWidget(this);
     //c->show();
@@ -349,4 +350,22 @@ void MainWindow::on_actionClose_Scene_triggered()
 	core->GetSubSystem((ISubSystem**)&sm, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 
 	sm->CloseScene();
+}
+
+void MainWindow::cloneNode()
+{
+	if (editor->IsSomeObjectSelected())
+	{
+		if (!eng) return;
+
+		ICore *core;
+		eng->GetCore(core);
+
+		IResourceManager *resMan;
+		core->GetSubSystem((ISubSystem**)&resMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
+
+		IResource *res = editor->GetSelectionObject();
+		IResource *clonedRes;
+		resMan->CloneResource(res, &clonedRes);
+	}
 }
