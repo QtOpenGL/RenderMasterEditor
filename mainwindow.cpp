@@ -49,7 +49,7 @@ static ADS_NS::SectionContent::RefPtr createConsole(ADS_NS::ContainerWidget* con
     ConsoleWidget *w = new ConsoleWidget();
 
     const int index = ++CONTENT_COUNT;
-    ADS_NS::SectionContent::RefPtr sc = ADS_NS::SectionContent::newSectionContent(QString("Console-%1").arg(index), container, new IconTitleWidget(QIcon(), QString("Render Master Console").arg(index)), w);
+	ADS_NS::SectionContent::RefPtr sc = ADS_NS::SectionContent::newSectionContent(QString("Console-%1").arg(index), container, new IconTitleWidget(QIcon(), QString("Console").arg(index)), w);
     //sc->setTitle("Ein Label " + QString::number(index));
     return sc;
 }
@@ -68,7 +68,7 @@ static ADS_NS::SectionContent::RefPtr createD3D11Widget(ADS_NS::ContainerWidget*
     RenderWidget* w = new RenderWidget();
 
     const int index = ++CONTENT_COUNT;
-    return ADS_NS::SectionContent::newSectionContent(QString("Render-%2").arg(index), container, new IconTitleWidget(QIcon(), QString("Render").arg(index)), w);
+	return ADS_NS::SectionContent::newSectionContent(QString("Viewport-%2").arg(index), container, new IconTitleWidget(QIcon(), QString("Viewport").arg(index)), w);
 }
 
 static ADS_NS::SectionContent::RefPtr createSceneTree(ADS_NS::ContainerWidget* container)
@@ -79,7 +79,7 @@ static ADS_NS::SectionContent::RefPtr createSceneTree(ADS_NS::ContainerWidget* c
 	editor->SceneTreeInited(w);
 
     const int index = ++CONTENT_COUNT;
-	return ADS_NS::SectionContent::newSectionContent(QString("Scene Tree"), container, new IconTitleWidget(QIcon(), QString("Scene Tree").arg(index)), w);
+	return ADS_NS::SectionContent::newSectionContent(QString("Scene"), container, new IconTitleWidget(QIcon(), QString("Scene").arg(index)), w);
 }
 
 static ADS_NS::SectionContent::RefPtr createProjectView(ADS_NS::ContainerWidget* container)
@@ -87,7 +87,7 @@ static ADS_NS::SectionContent::RefPtr createProjectView(ADS_NS::ContainerWidget*
     ProjectView* w = new ProjectView();
 
     const int index = ++CONTENT_COUNT;
-    return ADS_NS::SectionContent::newSectionContent(QString("Project View"), container, new IconTitleWidget(QIcon(), QString("Project View").arg(index)), w);
+	return ADS_NS::SectionContent::newSectionContent(QString("Project"), container, new IconTitleWidget(QIcon(), QString("Project").arg(index)), w);
 }
 
 static ADS_NS::SectionContent::RefPtr createPropertiesView(ADS_NS::ContainerWidget* container)
@@ -96,7 +96,7 @@ static ADS_NS::SectionContent::RefPtr createPropertiesView(ADS_NS::ContainerWidg
     editor->propertiesWidget = w;
 
     const int index = ++CONTENT_COUNT;
-    return ADS_NS::SectionContent::newSectionContent(QString("Properties View"), container, new IconTitleWidget(QIcon(), QString("Properties View").arg(index)), w);
+	return ADS_NS::SectionContent::newSectionContent(QString("Properties"), container, new IconTitleWidget(QIcon(), QString("Properties").arg(index)), w);
 }
 
 static QByteArray loadDataHelper(const QString& fname)
