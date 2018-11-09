@@ -366,6 +366,6 @@ void MainWindow::cloneNode()
 
 		IResource *res = editor->GetSelectionObject();
 		IResource *clonedRes;
-		resMan->CloneResource(res, &clonedRes);
+		resMan->CloneGameObject(res, &clonedRes);
 	}
 }

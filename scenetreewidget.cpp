@@ -352,6 +352,8 @@ SceneTreeWidget::SceneTreeWidget(QWidget *parent) :
 	connect(selectionModel, SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(_currentChanged(const QModelIndex &, const QModelIndex &)));
 
 	connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(_doubleClickOnItem()));
+
+	connect(eng, &EngineGlobal::EngineBeforeClose, this, &SceneTreeWidget::onEngineClosed, Qt::DirectConnection);
 }
 
 SceneTreeWidget::~SceneTreeWidget()
@@ -405,6 +407,12 @@ void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIn
 void SceneTreeWidget::_doubleClickOnItem()
 {
 	editor->RaiseFocusOnSelevtedObjects();
+}
+
+void SceneTreeWidget::onEngineClosed(ICore *pCore)
+{
+	auto *selectionModel = ui->treeView->selectionModel();
+	selectionModel->clear();
 }
 
 //void SceneTreeWidget::_add_game_object(IGameObject *go, int root, IGameObject *parent)

@@ -98,6 +98,9 @@ private slots:
 	void _selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 	void _currentChanged(const QModelIndex &current, const QModelIndex &previous);
 	void _doubleClickOnItem();
+private slots:
+	//void onEngineInited(RENDER_MASTER::ICore *pCore);
+	void onEngineClosed(RENDER_MASTER::ICore *pCore);
 
 };
 
