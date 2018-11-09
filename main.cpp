@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	auto glFlag = INIT_FLAGS::OPENGL45;
 
 	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
-	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::MSAA_8X | glFlag, "resources", &h);
+	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::MSAA_8X | glFlag, L"resources", &h);
 
 	ResourcePtr<IModel> model1;
 	//ResourcePtr<IModel> model2;

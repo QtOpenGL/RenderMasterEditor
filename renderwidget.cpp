@@ -360,9 +360,9 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	//pCoreRender->CreateUniformBuffer(&paramsBuffer, sizeof(EveryFrameParameters));
 
 	parameters = pResMan->createUniformBuffer(sizeof(EveryFrameParameters));
-	_pAxesMesh = pResMan->createDefaultMesh(RES_TYPE::MESH_AXES);
-	_pAxesArrowMesh = pResMan->createDefaultMesh(RES_TYPE::MESH_AXES_ARROWS);
-	_pGridMesh = pResMan->createDefaultMesh(RES_TYPE::MESH_GRID);
+	_pAxesMesh = pResMan->loadMesh("std#axes");
+	_pAxesArrowMesh = pResMan->loadMesh("std#axes_arrows");
+	_pGridMesh = pResMan->loadMesh("std#grid");
 }
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
