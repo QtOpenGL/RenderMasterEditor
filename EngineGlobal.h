@@ -14,7 +14,7 @@ class EngineGlobal : public QObject
 {
     Q_OBJECT
 
-    RENDER_MASTER::ICore *pCore;
+    RENDER_MASTER::ICore *pCore = nullptr;
     QTimer *timer;
     std::chrono::steady_clock::time_point start;
 
