@@ -59,32 +59,32 @@ void PropertiesWidget::SetGameObject(IGameObject *go)
 
 	_go = go;
 
-	if (go)
+	if (_go)
 	{
-		subscribeToGO(go);
+		subscribeToGO(_go);
 
 		ui->lineEdit->setEnabled(true);
 		ui->groupBox->setEnabled(true);
 
 		const char *name;
-		go->GetName(&name);
+		_go->GetName(&name);
 		ui->lineEdit->setText(name);
 
 		vec3 pos;
-		go->GetPosition(&pos);
+		_go->GetPosition(&pos);
 		ui->pos_x_sb->setValue((double)pos.x);
 		ui->pos_y_sb->setValue((double)pos.y);
 		ui->pos_z_sb->setValue((double)pos.z);
 
 		quat rot;
 		vec3 eulerAngles = rot.ToEuler();
-		go->GetRotation(&rot);
+		_go->GetRotation(&rot);
 		ui->rot_x_sb->setValue((double)eulerAngles.x);
 		ui->rot_y_sb->setValue((double)eulerAngles.y);
 		ui->rot_z_sb->setValue((double)eulerAngles.z);
 
 		vec3 scale;
-		go->GetScale(&scale);
+		_go->GetScale(&scale);
 		ui->scale_x_sb->setValue(scale.x);
 		ui->scale_y_sb->setValue(scale.y);
 		ui->scale_z_sb->setValue(scale.z);
