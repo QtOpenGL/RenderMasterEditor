@@ -57,6 +57,8 @@ void PropertiesWidget::SetGameObject(IGameObject *go)
 {
 	unsubscribeFromPreviousGO();
 
+	_go = go;
+
 	if (go)
 	{
 		subscribeToGO(go);
