@@ -364,8 +364,9 @@ void MainWindow::cloneNode()
 		IResourceManager *resMan;
 		core->GetSubSystem((ISubSystem**)&resMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-		IResource *res = editor->GetSelectionObject();
-		IResource *clonedRes;
-		resMan->CloneGameObject(res, &clonedRes);
+		// not impl
+		//IGameObject *res = editor->GetSelectionObject();
+		//IGameObject *clonedRes;
+		//resMan->CloneGameObject(res, &clonedRes);
 	}
 }

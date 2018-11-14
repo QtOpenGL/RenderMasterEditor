@@ -56,7 +56,7 @@ QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &par
 
 	if( 0 <= row && row < rootGameObjects )
 	{
-		IResource *go{nullptr};
+		IGameObject *go{nullptr};
 		sm->GetChild(&go, nullptr, row);
 		return createIndex( row, column, go );
 	}
@@ -91,9 +91,7 @@ QVariant SceneManagerModel::data( const QModelIndex &index, int role) const
 	{
 	case 0:
 	{
-		IResource *res = static_cast<IResource*>( index.internalPointer() );
-		IGameObject *go;
-		res->GetPointer((void**)&go);
+		IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
 		const char *name;
 		go->GetName(&name);
 		return QVariant(name);
@@ -114,9 +112,7 @@ bool SceneManagerModel::setData(const QModelIndex &index, const QVariant &value,
 {
 	if (index.isValid() && role == Qt::EditRole && value.toString() != "")
 	{
-		IResource *res = static_cast<IResource*>( index.internalPointer() );
-		IGameObject *go = nullptr;
-		res->GetPointer((void**)&go);
+		IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
 		go->SetName( value.toString().toUtf8().data() );
 		emit dataChanged(index, index);
 		return true;
@@ -280,13 +276,13 @@ void SceneManagerModel::onEngineInited(RENDER_MASTER::ICore *pCore)
 {
 	pCore->GetSubSystem((ISubSystem**)&sm, SUBSYSTEM_TYPE::SCENE_MANAGER);
 
-	IResourceEvent *pGameObjectEvent;
+	IGameObjectEvent *pGameObjectEvent;
 
 	sm->GetGameObjectAddedEvent(&pGameObjectEvent);
-	pGameObjectEvent->Subscribe((IResourceEventSubscriber*)_addObjectHandler.get());
+	pGameObjectEvent->Subscribe((IGameObjectEventSubscriber*)_addObjectHandler.get());
 
 	sm->GetDeleteGameObjectEvent(&pGameObjectEvent);
-	pGameObjectEvent->Subscribe((IResourceEventSubscriber*)_deleteObjectHandler.get());
+	pGameObjectEvent->Subscribe((IGameObjectEventSubscriber*)_deleteObjectHandler.get());
 
 //	for (int i = 0; i< rootGameObjects; i++)
 //	{
@@ -308,23 +304,24 @@ void SceneManagerModel::onEngineInited(RENDER_MASTER::ICore *pCore)
 
 void SceneManagerModel::onEngineClosed(RENDER_MASTER::ICore *pCore)
 {
-	IResourceEvent *pGameObjectEvent;
+	IGameObjectEvent *pGameObjectEvent;
 	sm->GetGameObjectAddedEvent(&pGameObjectEvent);
-	pGameObjectEvent->Unsubscribe((IResourceEventSubscriber*)_addObjectHandler.get());
+	pGameObjectEvent->Unsubscribe((IGameObjectEventSubscriber*)_addObjectHandler.get());
 
 	pCore = nullptr;
 	sm = nullptr;
 }
 
-API AddGameObjectHandler::Call(IResource *pGameObject)
+API AddGameObjectHandler::Call(IGameObject *pGameObject)
 {
+	pGameObject->AddRef();
 	emit _parent->layoutChanged();
 	return S_OK;
 }
 
-API DeleteGameObjectHandler::Call(IResource *pGameObject)
+API DeleteGameObjectHandler::Call(IGameObject *pGameObject)
 {
-	// not implemented
+	pGameObject->Release();
 	return S_OK;
 }
 
@@ -370,8 +367,8 @@ void SceneTreeWidget::_selectionChanged(const QItemSelection &selected, const QI
 		const QModelIndex& index = selected.indexes().at(0);
 		if (index.isValid())
 		{
-			IResource *res = static_cast<IResource*>( index.internalPointer() );
-			auto vec = std::vector<IResource*>();
+			IGameObject *res = static_cast<IGameObject*>( index.internalPointer() );
+			auto vec = std::vector<IGameObject*>();
 			vec.push_back(res);
 			editor->ChangeSelection(vec);
 		}
@@ -382,7 +379,7 @@ void SceneTreeWidget::_selectionChanged(const QItemSelection &selected, const QI
 		//}
 	}else
 	{
-		editor->ChangeSelection(vector<IResource*>());
+		editor->ChangeSelection(vector<IGameObject*>());
 		auto *selectionModel = ui->treeView->selectionModel();
 		selectionModel->clear();
 	}
@@ -392,13 +389,13 @@ void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIn
 {
 	if (!current.isValid())
 	{
-		editor->ChangeSelection(std::vector<IResource*>());
+		editor->ChangeSelection(std::vector<IGameObject*>());
 		auto *selectionModel = ui->treeView->selectionModel();
 		selectionModel->clear();
 	}else
 	{
-		IResource *res = static_cast<IResource*>( current.internalPointer() );
-		auto vec = std::vector<IResource*>();
+		IGameObject *res = static_cast<IGameObject*>( current.internalPointer() );
+		auto vec = std::vector<IGameObject*>();
 		vec.push_back(res);
 		editor->ChangeSelection(vec);
 	}

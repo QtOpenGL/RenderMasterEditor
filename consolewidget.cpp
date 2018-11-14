@@ -101,7 +101,7 @@ void ConsoleWidget::on_pushButton_clicked()
 
 void ConsoleWidget::onEngineInited(ICore *pCore_)
 {    
-	if (!pConsole)
+	if (pConsole)
 		return;
 
 	pCore->GetSubSystem((ISubSystem**)&pConsole, SUBSYSTEM_TYPE::CONSOLE);

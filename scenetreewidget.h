@@ -7,7 +7,6 @@
 #include <QItemSelection>
 #include <memory.h>
 
-using RENDER_MASTER::ResourcePtr;
 using RENDER_MASTER::IGameObject;
 
 
@@ -16,23 +15,23 @@ class SceneManagerModel;
 
 // This class handled addition gameobjects when engine raise event
 //
-class AddGameObjectHandler : RENDER_MASTER::IResourceEventSubscriber
+class AddGameObjectHandler : RENDER_MASTER::IGameObjectEventSubscriber
 {
 	SceneManagerModel *_parent;
 public:
 	AddGameObjectHandler(SceneManagerModel *parent) : _parent(parent){}
-	API Call(RENDER_MASTER::IResource *pGameObject) override;
+	API Call(RENDER_MASTER::IGameObject *pGameObject) override;
 };
 
 
 // This class handled deletion gameobjects when engine raise event
 //
-class DeleteGameObjectHandler : RENDER_MASTER::IResourceEventSubscriber
+class DeleteGameObjectHandler : RENDER_MASTER::IGameObjectEventSubscriber
 {
 	SceneManagerModel *_parent;
 public:
 	DeleteGameObjectHandler(SceneManagerModel *parent) : _parent(parent){}
-	API Call(RENDER_MASTER::IResource *pGameObject) override;
+	API Call(RENDER_MASTER::IGameObject *pGameObject) override;
 };
 
 
