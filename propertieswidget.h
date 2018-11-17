@@ -19,8 +19,7 @@ class PropertiesWidget : public QWidget, RENDER_MASTER::IPositionEventSubscriber
 {
     Q_OBJECT
 
-	//std::vector<ResourcePtr<IGameObject>> _selectedGameObjects;
-	ResourcePtr<IGameObject> _go;
+	IGameObject *_go = nullptr;
 
 public:
     explicit PropertiesWidget(QWidget *parent = 0);
@@ -31,13 +30,13 @@ protected:
     void showEvent(QShowEvent *event) override;
 
 public:
-	void SetGameObject(IResource *go);
+	void SetGameObject(IGameObject *go);
 	API Call(OUT vec3 *pos) override;
 	API Call(OUT quat *rot) override;
 
 private slots:
 	void onSceneTreeInited(SceneTreeWidget*);
-	void onSelectionChanged(const std::vector<IResource*>& selectedGameObjects);
+	void onSelectionChanged(const std::vector<IGameObject*>& selectedGameObjects);
 
 private:
     Ui::PropertiesWidget *ui;

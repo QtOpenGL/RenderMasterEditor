@@ -135,20 +135,28 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 	if (!editor->IsSomeObjectSelected())
 		return;
 
-	INPUT_ATTRUBUTE a;
-	_pAxesMesh->GetAttributes(&a);
-
-	ICoreShader *shader{nullptr};
 	ShaderRequirement req;
-	req.attributes = a;
-	req.alphaTest = false;
-	pRender->GetShader(&shader, &req);
-	if (!shader) return;
+	req.attributes = INPUT_ATTRUBUTE::POSITION | INPUT_ATTRUBUTE::COLOR;
 
+	IShader *shader{nullptr};
+	pRender->PreprocessStandardShader(&shader, &req);
+	if (!shader)
+		return;
 
-	pCoreRender->SetShader(shader);
+	shader->AddRef();
 
-	//float z = VP.el_2D[2][3];
+	ICoreShader *coreShader = nullptr;
+	shader->GetCoreShader(&coreShader);
+	pCoreRender->SetShader(coreShader);
+
+	ICoreConstantBuffer *coreCB;
+	parameters->GetCoreBuffer(&coreCB);
+
+	ICoreMesh *coreAxesMesh;
+	_pAxesMesh->GetCoreMesh(&coreAxesMesh);
+
+	ICoreMesh *coreAxesArrows;
+	_pAxesArrowMesh->GetCoreMesh(&coreAxesArrows);
 
 	uint h = rect().height();
 
@@ -171,42 +179,55 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 	params.MVP = VP * axisWorldTransform;
 	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	pCoreRender->SetUniformBufferData(parameters.get(), &params.main_color);
-	pCoreRender->SetUniformBuffer(parameters.get(), 0);
+	pCoreRender->SetUniformBufferData(coreCB, &params.main_color);
+	pCoreRender->SetUniformBuffer(coreCB, 0);
 
 	pCoreRender->SetDepthState(false);
 
-	pCoreRender->SetMesh(_pAxesMesh.get());
-	pCoreRender->Draw(_pAxesMesh.get());
+	pCoreRender->SetMesh(coreAxesMesh);
+	pCoreRender->Draw(coreAxesMesh);
 
-	pCoreRender->SetMesh(_pAxesArrowMesh.get());
-	pCoreRender->Draw(_pAxesArrowMesh.get());
+	pCoreRender->SetMesh(coreAxesArrows);
+	pCoreRender->Draw(coreAxesArrows);
+
+	shader->Release();
 }
 
 void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 {
-	INPUT_ATTRUBUTE a;
-	_pGridMesh->GetAttributes(&a);
-
-	ICoreShader *shader{nullptr};
 	ShaderRequirement req;
-	req.attributes = a;
-	req.alphaTest = false;
-	pRender->GetShader(&shader, &req);
-	if (!shader) return;
-	pCoreRender->SetShader(shader);
+	req.attributes = INPUT_ATTRUBUTE::POSITION;
+
+	IShader *shader{nullptr};
+	pRender->PreprocessStandardShader(&shader, &req);
+	if (!shader)
+		return;
+
+	shader->AddRef();
+
+	ICoreShader *coreShader = nullptr;
+	shader->GetCoreShader(&coreShader);
+
+	ICoreConstantBuffer *coreCB;
+	parameters->GetCoreBuffer(&coreCB);
+
+	ICoreMesh *coreGrid;
+	_pGridMesh->GetCoreMesh(&coreGrid);
 
 	params.MVP = VP;
 	params.main_color = vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
-	pCoreRender->SetUniformBufferData(parameters.get(), &params.main_color);
-	pCoreRender->SetUniformBuffer(parameters.get(), 0);
+	pCoreRender->SetShader(coreShader);
 
+	pCoreRender->SetUniformBufferData(coreCB, &params.main_color);
+	pCoreRender->SetUniformBuffer(coreCB, 0);
 
 	pCoreRender->SetDepthState(true);
 
-	pCoreRender->SetMesh(_pGridMesh.get());
-	pCoreRender->Draw(_pGridMesh.get());
+	pCoreRender->SetMesh(coreGrid);
+	pCoreRender->Draw(coreGrid);
+
+	shader->Release();
 }
 
 void RenderWidget::onRender()
@@ -351,28 +372,27 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 	pCore->GetSubSystem((ISubSystem **)&pResMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-	//pSceneManager->GetDefaultCamera(&pCamera);
+	pResMan->CreateConstantBuffer(&parameters, sizeof(EveryFrameParameters));
+	parameters->AddRef();
 
-	//pResMan->GetDefaultResource((IResource**)&_pAxesMesh, DEFAULT_RES_TYPE::AXES);
-	//pResMan->GetDefaultResource((IResource**)&_pAxesArrowMesh, DEFAULT_RES_TYPE::AXES_ARROWS);
-	//pResMan->GetDefaultResource((IResource**)&_pGridMesh, DEFAULT_RES_TYPE::GRID);
-	//
-	//pCoreRender->CreateUniformBuffer(&paramsBuffer, sizeof(EveryFrameParameters));
+	pResMan->LoadMesh(&_pAxesMesh, "std#axes");
+	_pAxesMesh->AddRef();
 
-	parameters = pResMan->createUniformBuffer(sizeof(EveryFrameParameters));
-	_pAxesMesh = pResMan->loadMesh("std#axes");
-	_pAxesArrowMesh = pResMan->loadMesh("std#axes_arrows");
-	_pGridMesh = pResMan->loadMesh("std#grid");
+	pResMan->LoadMesh(&_pAxesArrowMesh, "std#axes_arrows");
+	_pAxesArrowMesh->AddRef();
+
+	pResMan->LoadMesh(&_pGridMesh, "std#grid");
+	_pGridMesh->AddRef();
 }
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
 	Q_UNUSED( pCoreIn )
 
-	parameters.reset();
-	_pAxesArrowMesh.reset();
-	_pAxesMesh.reset();
-	_pGridMesh.reset();
+	parameters->Release();
+	_pAxesArrowMesh->Release();
+	_pAxesMesh->Release();
+	_pGridMesh->Release();
 
 	pCore = nullptr;
 }

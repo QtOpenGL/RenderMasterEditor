@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
 	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
 	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::MSAA_8X | glFlag, L"resources", &h);
 
-	ResourcePtr<IModel> model1;
-	//ResourcePtr<IModel> model2;
+	IModel *model1;
+	//IModel *model2;
 
 	if (SUCCEEDED(rm_inited))
 	{
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 		IResourceManager *pResManager;
 		pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-		model1 = pResManager->loadModel("box.fbx");
+		pResManager->LoadModel(&model1, "box.fbx");
 		//model2 = pResManager->loadModel("sphere.fbx");
 		//model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
 	}else
@@ -79,11 +79,10 @@ int main(int argc, char *argv[])
 
     int ret = a.exec();
 
-	model1.reset();
-	//model2.reset();
-
 	if (SUCCEEDED(rm_inited))
     {
+		model1->Release();
+
 		eng->BeforeClose();
 		pCore->ReleaseEngine();
 	}

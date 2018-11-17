@@ -58,10 +58,10 @@ class RenderWidget : public QWidget
 	#pragma pack(pop)
 
 	// resources
-	ResourcePtr<IUniformBuffer> parameters;
-	ResourcePtr<ICoreMesh> _pAxesMesh;
-	ResourcePtr<ICoreMesh> _pAxesArrowMesh;
-	ResourcePtr<ICoreMesh> _pGridMesh;
+	IConstantBuffer *parameters;
+	IMesh *_pAxesMesh;
+	IMesh *_pAxesArrowMesh;
+	IMesh *_pGridMesh;
 
 //	RENDER_MASTER::IUniformBuffer *paramsBuffer{nullptr};
 
