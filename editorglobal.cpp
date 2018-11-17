@@ -14,7 +14,6 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 
 		if (_selectionGameObject)
 		{
-
 			_selectionGameObject->Release();
 			_selectionGameObject = nullptr;
 		}
@@ -22,6 +21,12 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 		selectionChanged(std::vector<IGameObject*>());
 	} else
 	{
+		if (_selectionGameObject)
+		{
+			_selectionGameObject->Release();
+			_selectionGameObject = nullptr;
+		}
+
 		_someObejctSelected = 1;
 
 		_numberSelectedObjects = selectedGameObjects.size();

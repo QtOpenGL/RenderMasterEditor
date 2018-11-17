@@ -36,7 +36,8 @@ private slots:
 	void on_actionLoad_Scene_triggered();
 	void on_actionClose_Scene_triggered();
 
-	void cloneNode();
+	void clone_node();
+	void shaders_reload();
 
 protected:
     virtual void closeEvent(QCloseEvent* e);

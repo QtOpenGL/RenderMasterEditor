@@ -154,7 +154,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	QShortcut *shortcut_focus = new QShortcut(QKeySequence(Qt::Key_F), this);
 	QObject::connect(shortcut_focus, &QShortcut::activated, [&]() { editor->RaiseFocusOnSelevtedObjects(); });
 
-	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(cloneNode()));
+	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(clone_node()));
+	new QShortcut(QKeySequence(Qt::Key_F7), this, SLOT(shaders_reload()));
 
     //ConsoleWidget *c = new ConsoleWidget(this);
     //c->show();
@@ -352,7 +353,7 @@ void MainWindow::on_actionClose_Scene_triggered()
 	sm->CloseScene();
 }
 
-void MainWindow::cloneNode()
+void MainWindow::clone_node()
 {
 	if (editor->IsSomeObjectSelected())
 	{
@@ -369,4 +370,18 @@ void MainWindow::cloneNode()
 		//IGameObject *clonedRes;
 		//resMan->CloneGameObject(res, &clonedRes);
 	}
+}
+
+void MainWindow::shaders_reload()
+{
+	if (!eng) return;
+
+	ICore *core;
+	eng->GetCore(core);
+
+	IRender *render;
+	core->GetSubSystem((ISubSystem**)&render, RENDER_MASTER::SUBSYSTEM_TYPE::RENDER);
+
+	render->ShadersReload();
+
 }

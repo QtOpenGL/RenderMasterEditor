@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // splash
-/*
+// splash
+#ifdef QT_NO_DEBUG
     QPixmap pixmap("render_master2.png");
     QSplashScreen splash(pixmap);
 
@@ -33,8 +33,10 @@ int main(int argc, char *argv[])
         a.thread()->msleep(2);
     }
 
-    a.thread()->msleep(2000);
-*/
+	a.thread()->msleep(2000);
+
+	splash.hide();
+#endif
     QFile file(":/styles/dark.qss");
     file.open(QFile::ReadOnly);
     QString str = QLatin1String(file.readAll());
