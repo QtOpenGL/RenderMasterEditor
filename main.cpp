@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     QWidget *render_view = w->findChild<QWidget*>("D3D11Widget");
     HWND h = (HWND)render_view->winId();
 
-	auto glFlag = INIT_FLAGS::DIRECTX11;
+	auto glFlag = INIT_FLAGS::OPENGL45;
 
 	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
 	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::MSAA_8X | glFlag, L"resources", &h);

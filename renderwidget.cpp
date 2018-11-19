@@ -179,8 +179,8 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 	params.MVP = VP * axisWorldTransform;
 	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	pCoreRender->SetUniformBufferData(coreCB, &params.main_color);
-	pCoreRender->SetUniformBuffer(coreCB, 0);
+	pCoreRender->SetConstantBufferData(coreCB, &params.main_color);
+	pCoreRender->SetConstantBuffer(coreCB, 0);
 
 	pCoreRender->SetDepthState(false);
 
@@ -219,8 +219,8 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 
 	pCoreRender->SetShader(coreShader);
 
-	pCoreRender->SetUniformBufferData(coreCB, &params.main_color);
-	pCoreRender->SetUniformBuffer(coreCB, 0);
+	pCoreRender->SetConstantBufferData(coreCB, &params.main_color);
+	pCoreRender->SetConstantBuffer(coreCB, 0);
 
 	pCoreRender->SetDepthState(true);
 
