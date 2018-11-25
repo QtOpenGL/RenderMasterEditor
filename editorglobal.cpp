@@ -31,11 +31,14 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 
 		_numberSelectedObjects = selectedGameObjects.size();
 
-		_selectionGameObject = selectedGameObjects[0];
-		_selectionGameObject->AddRef();
-		_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
+		if (_selectionGameObject != selectedGameObjects[0])
+		{
+			_selectionGameObject = selectedGameObjects[0];
+			_selectionGameObject->AddRef();
+			_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
 
-		selectionChanged(selectedGameObjects);
+			selectionChanged(selectedGameObjects);
+		}
 	}
 }
 

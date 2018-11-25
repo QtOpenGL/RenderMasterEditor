@@ -58,13 +58,13 @@ int main(int argc, char *argv[])
     QWidget *render_view = w->findChild<QWidget*>("D3D11Widget");
     HWND h = (HWND)render_view->winId();
 
-	auto glFlag = INIT_FLAGS::OPENGL45;
+	const auto glFlag = INIT_FLAGS::OPENGL45;
 
 	w->setWindowTitle(w->windowTitle() + (glFlag == INIT_FLAGS::OPENGL45 ? "  (GL)" : " (DX11)"));
 	auto rm_inited = pCore->Init(INIT_FLAGS::EXTERN_WINDOW | INIT_FLAGS::MSAA_8X | glFlag, L"resources", &h);
 
 	IModel *model1;
-	//IModel *model2;
+	IModel *model2;
 
 	if (SUCCEEDED(rm_inited))
 	{
@@ -74,8 +74,8 @@ int main(int argc, char *argv[])
 		pCore->GetSubSystem((ISubSystem**)&pResManager, SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
 		pResManager->LoadModel(&model1, "box.fbx");
-		//model2 = pResManager->loadModel("sphere.fbx");
-		//model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
+		pResManager->LoadModel(&model2, "box.fbx");
+		model2->SetPosition(&vec3(15.0f, 0.0f, 0.0f));
 	}else
 		qWarning() << "Failed to initialize RenderMaster";
 
@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 	if (SUCCEEDED(rm_inited))
     {
 		model1->Release();
+		model2->Release();
 
 		eng->BeforeClose();
 		pCore->ReleaseEngine();

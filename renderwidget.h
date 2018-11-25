@@ -30,6 +30,9 @@ class RenderWidget : public QWidget
     QPoint lastMousePos;
     float dx{}, dy{};
 
+	int needCaptureId = 0;
+	uint captureX = 0, captureY = 0;
+
     int key_w{};
     int key_s{};
     int key_a{};

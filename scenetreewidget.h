@@ -94,7 +94,8 @@ private:
 	void _add_game_object(RENDER_MASTER::IGameObject *go, int root, RENDER_MASTER::IGameObject *parent);
 
 private slots:
-	void _selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
+	void onSelectionChangedFromEditor(const std::vector<IGameObject*>& selectedGameObjects);
+	void _selectionChangedFromClick(const QItemSelection& selected, const QItemSelection& deselected);
 	void _currentChanged(const QModelIndex &current, const QModelIndex &previous);
 	void _doubleClickOnItem();
 private slots:

@@ -345,12 +345,14 @@ SceneTreeWidget::SceneTreeWidget(QWidget *parent) :
 	ui->treeView->setModel(_model);
 
 	auto *selectionModel = ui->treeView->selectionModel();
-	connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(_selectionChanged(const QItemSelection&,const QItemSelection&)));
+	connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection&,const QItemSelection&)), this, SLOT(_selectionChangedFromClick(const QItemSelection&,const QItemSelection&)));
 	connect(selectionModel, SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(_currentChanged(const QModelIndex &, const QModelIndex &)));
 
 	connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(_doubleClickOnItem()));
 
 	connect(eng, &EngineGlobal::EngineBeforeClose, this, &SceneTreeWidget::onEngineClosed, Qt::DirectConnection);
+
+	connect(editor, &EditorGlobal::selectionChanged, this, &SceneTreeWidget::onSelectionChangedFromEditor, Qt::DirectConnection);
 }
 
 SceneTreeWidget::~SceneTreeWidget()
@@ -358,11 +360,57 @@ SceneTreeWidget::~SceneTreeWidget()
 	delete ui;
 }
 
-void SceneTreeWidget::_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+QModelIndex iterate(const QModelIndex & index, const QAbstractItemModel * model, int depth, IGameObject *goIn)
+{
+	vector<IGameObject *> all_game_objects;
+
+	if (index.isValid())
+	{
+		IGameObject *g = static_cast<IGameObject*>(index.internalPointer());
+
+		if (goIn == g)
+			return index;
+	}
+	if (!model->hasChildren(index)) return QModelIndex();
+	auto rows = model->rowCount(index);
+	auto cols = model->columnCount(index);
+	for (int i = 0; i < rows; ++i)
+		for (int j = 0; j < cols; ++j)
+		{
+			auto idx = iterate(model->index(i, j, index), model, depth+1, goIn);
+			if (idx.isValid())
+				return idx;
+		}
+
+	return QModelIndex();
+}
+
+void SceneTreeWidget::onSelectionChangedFromEditor(const std::vector<IGameObject *>& selectedGameObjects)
+{
+	qDebug() << "SceneTreeWidget::onSelectionChangedFromEditor " << selectedGameObjects.size();
+
+	auto *selectionModel = ui->treeView->selectionModel();
+
+	if (selectedGameObjects.size())
+	{
+		auto idx = iterate(ui->treeView->rootIndex(), _model, 0, selectedGameObjects[0]);
+		if (idx.isValid())
+		{
+			selectionModel->reset();
+			selectionModel->select(idx, QItemSelectionModel::SelectionFlag::Select);
+			ui->treeView->repaint();
+		}
+		else
+			qDebug() << "Can not find object";
+	} else
+		selectionModel->clear();
+}
+
+void SceneTreeWidget::_selectionChangedFromClick(const QItemSelection &selected, const QItemSelection &deselected)
 {
 	if (selected.indexes().size())
 	{
-		qDebug() << "selected" << selected.size() << "deselected" << deselected.size();
+		qDebug() << "SceneTreeWidget::_selectionChangedFromClick(): selected" << selected.size() << "deselected" << deselected.size();
 
 		const QModelIndex& index = selected.indexes().at(0);
 		if (index.isValid())

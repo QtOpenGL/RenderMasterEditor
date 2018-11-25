@@ -81,6 +81,19 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 		//qDebug() << "RenderWidget::mousePressEvent(QMouseEvent *event)";
 		rightMouse = 1;
 		lastMousePos = event->pos();
+
+		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
+		//needCaptureId = 1;
+		//captureX = uint(lastMousePos.x());
+		//captureY = uint(lastMousePos.y());
+	}
+
+	if (event->button() == Qt::LeftButton)
+	{
+		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
+		needCaptureId = 1;
+		captureX = uint(event->pos().x());
+		captureY = uint(event->pos().y());
 	}
 	QWidget::mousePressEvent(event);
 }
@@ -102,7 +115,7 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 		dx = event->pos().x() - lastMousePos.x();
 		dy = event->pos().y() - lastMousePos.y();
 		lastMousePos = event->pos();
-		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event)";
+
 	}
 	QWidget::mouseMoveEvent(event);
 }
@@ -244,6 +257,7 @@ void RenderWidget::onRender()
 	pCore->RenderFrame(&h, pCamera);
 
 	eng->getCoreRender()->PushStates();
+
 	{
 		float aspect = (float)rect().width() / rect().height();
 
@@ -256,12 +270,70 @@ void RenderWidget::onRender()
 	eng->getCoreRender()->PopStates();
 
 	pCoreRender->SwapBuffers();
+
+	if (needCaptureId)
+	{
+		needCaptureId = 0;
+
+		IRender *render;
+		pCore->GetSubSystem((ISubSystem**)&render, SUBSYSTEM_TYPE::RENDER);
+
+		int w = size().width();
+		int h = size().height();
+
+		ITexture *idTex;
+		render->GetRenderTexture2D(&idTex, w, h, TEXTURE_FORMAT::R32UI);
+		idTex->AddRef();
+
+		ITexture *depthIdTex;
+		render->GetRenderTexture2D(&depthIdTex, w, h, TEXTURE_FORMAT::D24S8);
+		depthIdTex->AddRef();
+
+		render->RenderPassIDPass(pCamera, idTex, depthIdTex);
+
+		//
+		//i->GetMousePos(&captureX, &captureY);
+		ICoreTexture *coreTex;
+		idTex->GetCoreTexture(&coreTex);
+		uint data = 0;
+		uint read = 0;
+		eng->getCoreRender()->ReadPixel2D(coreTex, &data, &read, captureX, captureY);
+		if (read > 0)
+		{
+			qDebug() << "Captured Id = " <<  data;
+
+			ISceneManager *sm;
+			pCore->GetSubSystem((ISubSystem**)&sm, SUBSYSTEM_TYPE::SCENE_MANAGER);
+
+			IGameObject *go;
+			sm->FindChildById(&go, data);
+
+			if (go)
+			{
+				std::vector<IGameObject*> gos = {go};
+				editor->ChangeSelection(gos);
+			} else
+			{
+				std::vector<IGameObject*> gos;
+				editor->ChangeSelection(gos);
+			}
+
+		}
+
+		depthIdTex->Release();
+		idTex->Release();
+		render->ReleaseRenderTexture2D(idTex);
+		render->ReleaseRenderTexture2D(depthIdTex);
+	}
+
 }
 
 void RenderWidget::onUpdate(float dt)
 {
 	if (!pCore)
 		return; // engine not loaded
+
+	pCore->Update();
 
 	ICamera *pCamera = nullptr;
 	pSceneManager->GetDefaultCamera(&pCamera);
