@@ -39,11 +39,16 @@ private slots:
 	void clone_node();
 	void shaders_reload();
 
+	void on_actionactionCursorSelect_triggered(bool checked);
+
 protected:
     virtual void closeEvent(QCloseEvent* e);
 	//virtual void contextMenuEvent(QContextMenuEvent* e);
 
 private:
+
+	void switch_button(QAction *action);
+
     Ui::MainWindow *ui;
     Dialog *dg;
     ADS_NS::ContainerWidget* _container;

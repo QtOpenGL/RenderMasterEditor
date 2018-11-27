@@ -10,7 +10,7 @@
 
 enum class MANIPULATOR
 {
-	NONE,
+	SELECT,
 	TRANSLATE,
 	ROTATE,
 	SCALE

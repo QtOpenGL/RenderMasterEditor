@@ -97,7 +97,7 @@ private slots:
 
 private:
 
-	MANIPULATOR _currentManipulator{MANIPULATOR::NONE};
+	MANIPULATOR _currentManipulator{MANIPULATOR::SELECT};
 
 	Ui::D3D11Widget *ui;
 };

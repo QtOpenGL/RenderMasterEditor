@@ -220,6 +220,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ADS - Restore geometries and states of contents.
     _container->restoreState(loadDataHelper("ContainerWidget"));
+
+	editor->ManipulatorPressed(MANIPULATOR::SELECT);
+	switch_button(ui->actionactionCursorSelect);
 }
 
 MainWindow::~MainWindow()
@@ -253,8 +256,10 @@ void MainWindow::closeEvent(QCloseEvent* e)
 {
     Q_UNUSED(e);
     storeDataHelper("MainWindow", saveGeometry());
-    storeDataHelper("ContainerWidget", _container->saveState());
+	storeDataHelper("ContainerWidget", _container->saveState());
 }
+
+
 
 //void MainWindow::contextMenuEvent(QContextMenuEvent* e)
 //{
@@ -271,41 +276,43 @@ void MainWindow::on_actionAbout_Render_Master_triggered()
 	about->exec();
 }
 
+void MainWindow::switch_button(QAction *action)
+{
+	bool flag = ui->actionactionManipulatorTransform == action;
+	ui->actionactionManipulatorTransform->setChecked(flag);
+
+	flag = ui->actionManipulatorScale == action;
+	ui->actionManipulatorScale->setChecked(flag);
+
+	flag = ui->actionactionManipulatorRotate == action;
+	ui->actionactionManipulatorRotate->setChecked(flag);
+
+	flag = ui->actionactionCursorSelect == action;
+	ui->actionactionCursorSelect->setChecked(flag);
+}
+
+void MainWindow::on_actionactionCursorSelect_triggered(bool checked)
+{
+	editor->ManipulatorPressed(MANIPULATOR::SELECT);
+	switch_button(ui->actionactionCursorSelect);
+}
+
 void MainWindow::on_actionactionManipulatorRotate_triggered(bool checked)
 {
-	if (checked)
-	{
-		editor->ManipulatorPressed(MANIPULATOR::ROTATE);
-		ui->actionactionManipulatorTransform->setChecked(false);
-		ui->actionManipulatorScale->setChecked(false);
-	}
-	else
-		editor->ManipulatorPressed(MANIPULATOR::NONE);
+	editor->ManipulatorPressed(MANIPULATOR::ROTATE);
+	switch_button(ui->actionactionManipulatorRotate);
 }
 
 void MainWindow::on_actionManipulatorScale_triggered(bool checked)
 {
-	if (checked)
-	{
-		editor->ManipulatorPressed(MANIPULATOR::SCALE);
-		ui->actionactionManipulatorTransform->setChecked(false);
-		ui->actionactionManipulatorRotate->setChecked(false);
-	}
-	else
-		editor->ManipulatorPressed(MANIPULATOR::NONE);
-
+	editor->ManipulatorPressed(MANIPULATOR::SCALE);
+	switch_button(ui->actionManipulatorScale);
 }
 
 void MainWindow::on_actionactionManipulatorTransform_triggered(bool checked)
 {
-	if (checked)
-	{
-		editor->ManipulatorPressed(MANIPULATOR::TRANSLATE);
-		ui->actionactionManipulatorRotate->setChecked(false);
-		ui->actionManipulatorScale->setChecked(false);
-	}
-	else
-		editor->ManipulatorPressed(MANIPULATOR::NONE);
+	editor->ManipulatorPressed(MANIPULATOR::TRANSLATE);
+	switch_button(ui->actionactionManipulatorTransform);
 }
 
 void MainWindow::on_actionSave_scene_triggered()
@@ -385,3 +392,4 @@ void MainWindow::shaders_reload()
 	render->ShadersReload();
 
 }
+

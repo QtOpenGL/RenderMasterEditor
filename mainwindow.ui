@@ -120,6 +120,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionactionCursorSelect"/>
    <addaction name="actionactionManipulatorTransform"/>
    <addaction name="actionactionManipulatorRotate"/>
    <addaction name="actionManipulatorScale"/>
@@ -297,6 +298,18 @@
   <action name="actionClose_Scene">
    <property name="text">
     <string>Close Scene</string>
+   </property>
+  </action>
+  <action name="actionactionCursorSelect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="myresources.qrc">
+     <normaloff>:/icons/cursor_blue.png</normaloff>:/icons/cursor_blue.png</iconset>
+   </property>
+   <property name="text">
+    <string>actionCursorSelect</string>
    </property>
   </action>
  </widget>
