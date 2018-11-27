@@ -1,6 +1,12 @@
 #include "editorglobal.h"
 
 
+API EditorGlobal::Call(vec3 *pos)
+{
+	_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
+	return S_OK;
+}
+
 EditorGlobal::EditorGlobal()
 {
 }
@@ -14,6 +20,10 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 
 		if (_selectionGameObject)
 		{
+			IPositionEvent *ev;
+			_selectionGameObject->GetPositionEv(&ev);
+			ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
 			_selectionGameObject->Release();
 			_selectionGameObject = nullptr;
 		}
@@ -23,6 +33,10 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 	{
 		if (_selectionGameObject)
 		{
+			IPositionEvent *ev;
+			_selectionGameObject->GetPositionEv(&ev);
+			ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
 			_selectionGameObject->Release();
 			_selectionGameObject = nullptr;
 		}
@@ -36,6 +50,10 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 			_selectionGameObject = selectedGameObjects[0];
 			_selectionGameObject->AddRef();
 			_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
+
+			IPositionEvent *ev;
+			_selectionGameObject->GetPositionEv(&ev);
+			ev->Subscribe(dynamic_cast<IPositionEventSubscriber*>(this));
 
 			selectionChanged(selectedGameObjects);
 		}

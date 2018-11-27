@@ -17,7 +17,7 @@ enum class MANIPULATOR
 };
 
 
-class EditorGlobal : public QObject
+class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber
 {
     Q_OBJECT
 
@@ -25,6 +25,9 @@ class EditorGlobal : public QObject
 	mat4 _selectionCenterWorldTransform;
 	int _someObejctSelected = 0;
 	int _numberSelectedObjects = 0;
+
+	API Call(OUT vec3 *pos) override;
+	//API Call(OUT quat *rot) override;
 
 public:
     explicit EditorGlobal();

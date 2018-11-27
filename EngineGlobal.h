@@ -18,6 +18,7 @@ class EngineGlobal : public QObject
     QTimer *timer;
     std::chrono::steady_clock::time_point start;
 
+
 public:
     explicit EngineGlobal();
 
