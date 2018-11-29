@@ -158,18 +158,7 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 
 	shader->AddRef();
 
-	ICoreShader *coreShader = nullptr;
-	shader->GetCoreShader(&coreShader);
-	pCoreRender->SetShader(coreShader);
-
-	ICoreConstantBuffer *coreCB;
-	parameters->GetCoreBuffer(&coreCB);
-
-	ICoreMesh *coreAxesMesh;
-	_pAxesMesh->GetCoreMesh(&coreAxesMesh);
-
-	ICoreMesh *coreAxesArrows;
-	_pAxesArrowMesh->GetCoreMesh(&coreAxesArrows);
+	pCoreRender->SetShader(shader);
 
 	uint h = rect().height();
 
@@ -192,16 +181,16 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 	params.MVP = VP * axisWorldTransform;
 	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	pCoreRender->SetConstantBufferData(coreCB, &params.main_color);
-	pCoreRender->SetConstantBuffer(coreCB, 0);
+	pCoreRender->SetConstantBufferData(parameters, &params.main_color);
+	pCoreRender->SetConstantBuffer(parameters, 0);
 
 	pCoreRender->SetDepthState(false);
 
-	pCoreRender->SetMesh(coreAxesMesh);
-	pCoreRender->Draw(coreAxesMesh);
+	pCoreRender->SetMesh(_pAxesMesh);
+	pCoreRender->Draw(_pAxesMesh);
 
-	pCoreRender->SetMesh(coreAxesArrows);
-	pCoreRender->Draw(coreAxesArrows);
+	pCoreRender->SetMesh(_pAxesArrowMesh);
+	pCoreRender->Draw(_pAxesArrowMesh);
 
 	shader->Release();
 }
@@ -218,27 +207,18 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 
 	shader->AddRef();
 
-	ICoreShader *coreShader = nullptr;
-	shader->GetCoreShader(&coreShader);
-
-	ICoreConstantBuffer *coreCB;
-	parameters->GetCoreBuffer(&coreCB);
-
-	ICoreMesh *coreGrid;
-	_pGridMesh->GetCoreMesh(&coreGrid);
-
 	params.MVP = VP;
 	params.main_color = vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
-	pCoreRender->SetShader(coreShader);
+	pCoreRender->SetShader(shader);
 
-	pCoreRender->SetConstantBufferData(coreCB, &params.main_color);
-	pCoreRender->SetConstantBuffer(coreCB, 0);
+	pCoreRender->SetConstantBufferData(parameters, &params.main_color);
+	pCoreRender->SetConstantBuffer(parameters, 0);
 
 	pCoreRender->SetDepthState(true);
 
-	pCoreRender->SetMesh(coreGrid);
-	pCoreRender->Draw(coreGrid);
+	pCoreRender->SetMesh(_pGridMesh);
+	pCoreRender->Draw(_pGridMesh);
 
 	shader->Release();
 }
@@ -267,7 +247,6 @@ void RenderWidget::onRender()
 		_draw_grid(VP, pCamera);
 		_draw_axes(VP, pCamera);
 	}
-	eng->getCoreRender()->PopStates();
 
 	pCoreRender->SwapBuffers();
 
@@ -326,6 +305,7 @@ void RenderWidget::onRender()
 		render->ReleaseRenderTexture2D(depthIdTex);
 	}
 
+	eng->getCoreRender()->PopStates();
 }
 
 void RenderWidget::onUpdate(float dt)
