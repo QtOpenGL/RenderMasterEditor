@@ -178,11 +178,10 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 	axisWorldTransform.el_2D[1][1] = (80.0f / h) * dist;
 	axisWorldTransform.el_2D[2][2] = (80.0f / h) * dist;
 
-	params.MVP = VP * axisWorldTransform;
-	params.main_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-	pCoreRender->SetConstantBufferData(parameters, &params.main_color);
-	pCoreRender->SetConstantBuffer(parameters, 0);
+	mat4 MVP = VP * axisWorldTransform;
+	shader->SetMat4Parameter("MVP", &MVP);
+	shader->SetVec4Parameter("main_color", &vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	shader->FlushParameters();
 
 	pCoreRender->SetDepthState(false);
 
@@ -207,13 +206,10 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 
 	shader->AddRef();
 
-	params.MVP = VP;
-	params.main_color = vec4(0.1f, 0.1f, 0.1f, 1.0f);
-
 	pCoreRender->SetShader(shader);
 
-	pCoreRender->SetConstantBufferData(parameters, &params.main_color);
-	pCoreRender->SetConstantBuffer(parameters, 0);
+	shader->SetVec4Parameter("main_color", &vec4(0.1f, 0.1f, 0.1f, 1.0f));
+	shader->FlushParameters();
 
 	pCoreRender->SetDepthState(true);
 
@@ -424,9 +420,6 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 	pCore->GetSubSystem((ISubSystem **)&pResMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-	pResMan->CreateConstantBuffer(&parameters, sizeof(EveryFrameParameters));
-	parameters->AddRef();
-
 	pResMan->LoadMesh(&_pAxesMesh, "std#axes");
 	_pAxesMesh->AddRef();
 
@@ -441,7 +434,6 @@ void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
 	Q_UNUSED( pCoreIn )
 
-	parameters->Release();
 	_pAxesArrowMesh->Release();
 	_pAxesMesh->Release();
 	_pGridMesh->Release();
