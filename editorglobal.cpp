@@ -31,22 +31,21 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 		selectionChanged(std::vector<IGameObject*>());
 	} else
 	{
-		if (_selectionGameObject)
-		{
-			IPositionEvent *ev;
-			_selectionGameObject->GetPositionEv(&ev);
-			ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
-
-			_selectionGameObject->Release();
-			_selectionGameObject = nullptr;
-		}
-
-		_someObejctSelected = 1;
-
-		_numberSelectedObjects = selectedGameObjects.size();
-
 		if (_selectionGameObject != selectedGameObjects[0])
 		{
+			if (_selectionGameObject)
+			{
+				IPositionEvent *ev;
+				_selectionGameObject->GetPositionEv(&ev);
+				ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
+				_selectionGameObject->Release();
+				_selectionGameObject = nullptr;
+			}
+
+			_someObejctSelected = 1;
+			_numberSelectedObjects = selectedGameObjects.size();
+
 			_selectionGameObject = selectedGameObjects[0];
 			_selectionGameObject->AddRef();
 			_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);

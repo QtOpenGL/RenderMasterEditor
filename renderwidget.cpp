@@ -208,6 +208,7 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 
 	pCoreRender->SetShader(shader);
 
+	shader->SetMat4Parameter("MVP", &VP);
 	shader->SetVec4Parameter("main_color", &vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	shader->FlushParameters();
 

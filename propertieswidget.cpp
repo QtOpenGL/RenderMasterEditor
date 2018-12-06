@@ -77,8 +77,8 @@ void PropertiesWidget::SetGameObject(IGameObject *go)
 		ui->pos_z_sb->setValue((double)pos.z);
 
 		quat rot;
-		vec3 eulerAngles = rot.ToEuler();
 		_go->GetRotation(&rot);
+		vec3 eulerAngles = rot.ToEuler();
 		ui->rot_x_sb->setValue((double)eulerAngles.x);
 		ui->rot_y_sb->setValue((double)eulerAngles.y);
 		ui->rot_z_sb->setValue((double)eulerAngles.z);
