@@ -264,6 +264,8 @@ void RenderWidget::onRender()
 		render->GetRenderTexture2D(&depthIdTex, w, h, TEXTURE_FORMAT::D24S8);
 		depthIdTex->AddRef();
 
+		eng->getCoreRender()->SetDepthState(1);
+
 		render->RenderPassIDPass(pCamera, idTex, depthIdTex);
 
 		//
