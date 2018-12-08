@@ -7,7 +7,10 @@
 
 QString vec3ToString(const vec3& v)
 {
-	return QString('{') + QString::number(v.x) + ', ' + QString::number(v.y) + ', ' + QString::number(v.z) + '}';
+	return QString('{') +
+			QString::number(v.x) + QString(', ') +
+			QString::number(v.y) + QString(', ') +
+			QString::number(v.z) + QString('}');
 }
 
 float clamp(float f)

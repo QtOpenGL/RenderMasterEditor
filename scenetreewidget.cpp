@@ -37,12 +37,13 @@ int SceneManagerModel::rowCount(const QModelIndex &parent) const
 	return rootGameObjects;
 }
 
-int SceneManagerModel::columnCount(const QModelIndex &parent ) const
+int SceneManagerModel::columnCount(const QModelIndex &parent) const
 {
+	Q_UNUSED( parent )
 	return 1;
 }
 
-QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &parent ) const
+QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &parent) const
 {
 	if (!sm) return QModelIndex();
 
@@ -54,7 +55,7 @@ QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &par
 	uint rootGameObjects;
 	sm->GetNumberOfChilds(&rootGameObjects, nullptr);
 
-	if( 0 <= row && row < rootGameObjects )
+	if( 0 <= row && row < (int)rootGameObjects )
 	{
 		IGameObject *go{nullptr};
 		sm->GetChild(&go, nullptr, row);
@@ -66,6 +67,7 @@ QModelIndex SceneManagerModel::index(int row, int column, const QModelIndex &par
 
 QModelIndex SceneManagerModel::parent(const QModelIndex &index) const
 {
+	Q_UNUSED( index )
   //if( !index.isValid() )
 	return QModelIndex();
 
@@ -138,6 +140,7 @@ Qt::ItemFlags SceneManagerModel::flags(const QModelIndex &index) const
 
 QMimeData* SceneManagerModel::mimeData(const QModelIndexList &indexes) const
 {
+	Q_UNUSED( indexes )
 	Q_ASSERT(false); // not impl
 	return nullptr;
 
@@ -202,6 +205,11 @@ void add_childs(std::unordered_set<QObject*>& objs)
 
 bool SceneManagerModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
+	Q_UNUSED(data)
+	Q_UNUSED(action)
+	Q_UNUSED(row)
+	Q_UNUSED(parent)
+	Q_UNUSED(column)
 //	if (action == Qt::IgnoreAction) {
 //		return true;
 //	}
@@ -239,9 +247,9 @@ bool SceneManagerModel::dropMimeData(const QMimeData* data, Qt::DropAction actio
 
 bool SceneManagerModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
-	Q_UNUSED(action);
-	Q_UNUSED(row);
-	Q_UNUSED(parent);
+	Q_UNUSED(action)
+	Q_UNUSED(row)
+	Q_UNUSED(parent)
 
 	if (!data->hasFormat("application/vnd.text.list"))
 		return false;
@@ -435,6 +443,8 @@ void SceneTreeWidget::_selectionChangedFromClick(const QItemSelection &selected,
 
 void SceneTreeWidget::_currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
+	Q_UNUSED( previous )
+
 	if (!current.isValid())
 	{
 		editor->ChangeSelection(std::vector<IGameObject*>());
@@ -456,6 +466,7 @@ void SceneTreeWidget::_doubleClickOnItem()
 
 void SceneTreeWidget::onEngineClosed(ICore *pCore)
 {
+	Q_UNUSED(pCore)
 	auto *selectionModel = ui->treeView->selectionModel();
 	selectionModel->clear();
 }

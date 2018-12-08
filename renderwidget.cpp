@@ -25,11 +25,6 @@ RenderWidget::RenderWidget(QWidget *parent) :
 	setAttribute(Qt::WA_PaintOnScreen);
 	setAttribute(Qt::WA_PaintUnclipped);
 	setAttribute(Qt::WA_NativeWindow);
-#ifdef _WIN32
-	//setAttribute(Qt::WA_TransparentForMouseEvents);
-#endif
-
-	//setStyleSheet("background-color: black;");
 	setFocusPolicy(Qt::StrongFocus);
 
 	connect(eng, &EngineGlobal::EngineInited, this, &RenderWidget::onEngineInited, Qt::DirectConnection);
@@ -56,22 +51,6 @@ void RenderWidget::resizeEvent(QResizeEvent* evt)
 void RenderWidget::paintEvent(QPaintEvent* evt)
 {
 	Q_UNUSED( evt )
-/*
-	if (pCore)
-	{
-		HWND h = (HWND)winId();
-		//pCoreRender->MakeCurrent(&h);
-
-		ICamera *pDefaultCamera{nullptr};
-		pSceneManager->GetDefaultCamera(&pDefaultCamera);
-
-		//pCoreRender->SetViewport(size().width(), size().height());
-
-		pCore->RenderFrame(&h, pDefaultCamera);
-
-		pCore->Log("D3D11Widget::paintEvent", RENDER_MASTER::LOG_TYPE::NORMAL);
-	}
-	*/
 }
 
 void RenderWidget::mousePressEvent(QMouseEvent *event)
@@ -81,11 +60,6 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 		//qDebug() << "RenderWidget::mousePressEvent(QMouseEvent *event)";
 		rightMouse = 1;
 		lastMousePos = event->pos();
-
-		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
-		//needCaptureId = 1;
-		//captureX = uint(lastMousePos.x());
-		//captureY = uint(lastMousePos.y());
 	}
 
 	if (event->button() == Qt::LeftButton)
@@ -142,6 +116,8 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
 
 void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 {
+	Q_UNUSED( pCamera )
+
 	if (MANIPULATOR::TRANSLATE != _currentManipulator)
 		return;
 
@@ -196,6 +172,8 @@ void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
 
 void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 {
+	Q_UNUSED( pCamera )
+
 	ShaderRequirement req;
 	req.attributes = INPUT_ATTRUBUTE::POSITION;
 
@@ -231,79 +209,81 @@ void RenderWidget::onRender()
 	if (!pCamera)
 		return; // no camera
 
-	pCore->RenderFrame(&h, pCamera);
+	mat4 VP;
+	float aspect = (float)rect().width() / rect().height();
+	pCamera->GetViewProjectionMatrix(&VP, aspect);
+
+	// default engine frame
+	{
+		pCore->RenderFrame(&h, pCamera);
+	}
 
 	eng->getCoreRender()->PushStates();
-
 	{
-		float aspect = (float)rect().width() / rect().height();
-
-		mat4 VP;
-		pCamera->GetViewProjectionMatrix(&VP, aspect);
-
-		_draw_grid(VP, pCamera);
-		_draw_axes(VP, pCamera);
-	}
-
-	pCoreRender->SwapBuffers();
-
-	if (needCaptureId)
-	{
-		needCaptureId = 0;
-
-		IRender *render;
-		pCore->GetSubSystem((ISubSystem**)&render, SUBSYSTEM_TYPE::RENDER);
-
-		int w = size().width();
-		int h = size().height();
-
-		ITexture *idTex;
-		render->GetRenderTexture2D(&idTex, w, h, TEXTURE_FORMAT::R32UI);
-		idTex->AddRef();
-
-		ITexture *depthIdTex;
-		render->GetRenderTexture2D(&depthIdTex, w, h, TEXTURE_FORMAT::D24S8);
-		depthIdTex->AddRef();
-
-		eng->getCoreRender()->SetDepthState(1);
-
-		render->RenderPassIDPass(pCamera, idTex, depthIdTex);
-
-		//
-		//i->GetMousePos(&captureX, &captureY);
-		ICoreTexture *coreTex;
-		idTex->GetCoreTexture(&coreTex);
-		uint data = 0;
-		uint read = 0;
-		eng->getCoreRender()->ReadPixel2D(coreTex, &data, &read, captureX, captureY);
-		if (read > 0)
+		// axes, grid
 		{
-			qDebug() << "Captured Id = " <<  data;
+			_draw_grid(VP, pCamera);
+			_draw_axes(VP, pCamera);
 
-			ISceneManager *sm;
-			pCore->GetSubSystem((ISubSystem**)&sm, SUBSYSTEM_TYPE::SCENE_MANAGER);
-
-			IGameObject *go;
-			sm->FindChildById(&go, data);
-
-			if (go)
-			{
-				std::vector<IGameObject*> gos = {go};
-				editor->ChangeSelection(gos);
-			} else
-			{
-				std::vector<IGameObject*> gos;
-				editor->ChangeSelection(gos);
-			}
-
+			pCoreRender->SwapBuffers();
 		}
 
-		depthIdTex->Release();
-		idTex->Release();
-		render->ReleaseRenderTexture2D(idTex);
-		render->ReleaseRenderTexture2D(depthIdTex);
-	}
+		// picking. render id's
+		if (needCaptureId)
+		{
+			needCaptureId = 0;
 
+			IRender *render;
+			pCore->GetSubSystem((ISubSystem**)&render, SUBSYSTEM_TYPE::RENDER);
+
+			int w = size().width();
+			int h = size().height();
+
+			ITexture *idTex;
+			render->GetRenderTexture2D(&idTex, w, h, TEXTURE_FORMAT::R32UI);
+			idTex->AddRef();
+
+			ITexture *depthIdTex;
+			render->GetRenderTexture2D(&depthIdTex, w, h, TEXTURE_FORMAT::D24S8);
+			depthIdTex->AddRef();
+
+			eng->getCoreRender()->SetDepthState(1);
+
+			render->RenderPassIDPass(pCamera, idTex, depthIdTex);
+
+			ICoreTexture *coreTex;
+			idTex->GetCoreTexture(&coreTex);
+			uint data = 0;
+			uint read = 0;
+			eng->getCoreRender()->ReadPixel2D(coreTex, &data, &read, captureX, captureY);
+			if (read > 0)
+			{
+				qDebug() << "Captured Id = " <<  data;
+
+				ISceneManager *sm;
+				pCore->GetSubSystem((ISubSystem**)&sm, SUBSYSTEM_TYPE::SCENE_MANAGER);
+
+				IGameObject *go;
+				sm->FindChildById(&go, data);
+
+				if (go)
+				{
+					std::vector<IGameObject*> gos = {go};
+					editor->ChangeSelection(gos);
+				} else
+				{
+					std::vector<IGameObject*> gos;
+					editor->ChangeSelection(gos);
+				}
+
+			}
+
+			depthIdTex->Release();
+			idTex->Release();
+			render->ReleaseRenderTexture2D(idTex);
+			render->ReleaseRenderTexture2D(depthIdTex);
+		}
+	}
 	eng->getCoreRender()->PopStates();
 }
 
@@ -389,23 +369,16 @@ void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTE
 
 	isFocusing = 1;
 
-	// calculate target position
-	//
-
-	//
 	mat4 ModelMat;
 	pCamera->GetModelMatrix(&ModelMat);
 	vec3 view = -ModelMat.Column3(2).Normalized();
 
-	//
 	float fovDegs;
 	pCamera->GetFovAngle(&fovDegs);
 	float fovRads = fovDegs * DEGTORAD;
 
-	//
 	float objectHalfSize = max(max(abs(aabb.maxX - aabb.minX), abs(aabb.maxY - aabb.minY)), abs(aabb.maxZ - aabb.minZ));
 
-	//
 	float distance = objectHalfSize / tan(fovRads * 0.5f);
 
 	focusingTargetPosition = worldCenter - view * distance;

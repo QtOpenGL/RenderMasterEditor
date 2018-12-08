@@ -27,6 +27,7 @@ ProjectView::~ProjectView()
 
 void ProjectView::onEngineInited(RENDER_MASTER::ICore *pCore)
 {
+	Q_UNUSED( pCore )
     QString projectDir = eng->GetProjectDir();
 
     QDir dir(projectDir);
@@ -39,5 +40,5 @@ void ProjectView::onEngineInited(RENDER_MASTER::ICore *pCore)
 
 void ProjectView::onEngineClosed(RENDER_MASTER::ICore *pCore)
 {
-
+	Q_UNUSED( pCore )
 }

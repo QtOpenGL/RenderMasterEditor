@@ -45,12 +45,12 @@ PropertiesWidget::~PropertiesWidget()
 
 void PropertiesWidget::hideEvent(QHideEvent *event)
 {
-
+	Q_UNUSED( event )
 }
 
 void PropertiesWidget::showEvent(QShowEvent *event)
 {
-
+	Q_UNUSED( event )
 }
 
 void PropertiesWidget::SetGameObject(IGameObject *go)
@@ -135,6 +135,7 @@ API PropertiesWidget::Call(quat *rot)
 
 void PropertiesWidget::onSceneTreeInited(SceneTreeWidget *sceneTree)
 {
+	Q_UNUSED( sceneTree )
 	// selection changed
 	connect(editor, &EditorGlobal::selectionChanged, this, &PropertiesWidget::onSelectionChanged, Qt::DirectConnection);
 }
@@ -235,6 +236,8 @@ void PropertiesWidget::fmod360(MySpinBox *w)
 
 void PropertiesWidget::connectRotation(MySpinBox *w, int xyz_offset)
 {
+	Q_UNUSED( xyz_offset )
+
 	auto conn = connect(w, QOverload<const QString&>::of(&QDoubleSpinBox::valueChanged), [&](const QString &newValueStr)
 	{
 		if (_go && !signalBlocked)

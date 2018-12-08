@@ -9,6 +9,7 @@
 IconTitleWidget::IconTitleWidget(const QIcon& icon, const QString& title, QWidget *parent) :
     QFrame(parent)
 {
+	Q_UNUSED( icon )
     QBoxLayout* l = new QBoxLayout(QBoxLayout::LeftToRight);
     l->setContentsMargins(0, 0, 0, 0);
     setLayout(l);

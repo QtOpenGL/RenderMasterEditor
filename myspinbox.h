@@ -15,6 +15,8 @@ class MySpinBox : public QDoubleSpinBox
 public:
 	MySpinBox(QWidget *parent = 0, const char *name = 0)
 	{
+		Q_UNUSED( parent )
+		Q_UNUSED( name )
 		installEventFilter(this);
 	}
 	~MySpinBox(){}
@@ -35,7 +37,7 @@ protected:
 	{
 		QRect rec = QApplication::desktop()->screenGeometry();
 		int height = rec.height();
-		int width = rec.width();
+		//int width = rec.width();
 
 		setCursor(Qt::SizeVerCursor);
 		const float multiplier = .3f;

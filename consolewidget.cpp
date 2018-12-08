@@ -100,7 +100,9 @@ void ConsoleWidget::on_pushButton_clicked()
 }
 
 void ConsoleWidget::onEngineInited(ICore *pCore_)
-{    
+{
+	Q_UNUSED( pCore_ )
+
 	if (pConsole)
 		return;
 
@@ -118,7 +120,7 @@ void ConsoleWidget::onEngineInited(ICore *pCore_)
 		QStandardItemModel &model = *completer_model;
 		model.clear();
 
-		for (int i = 0; i < commands; i++)
+		for (uint i = 0; i < commands; i++)
 		{
 			const char *name;
 			pConsole->GetCommand(&name, i);
@@ -129,6 +131,8 @@ void ConsoleWidget::onEngineInited(ICore *pCore_)
 
 void ConsoleWidget::onEngineClosed(ICore *pCore)
 {
+	Q_UNUSED( pCore )
+
 	if (!pConsole)
 		return;
 
@@ -141,6 +145,7 @@ void ConsoleWidget::onEngineClosed(ICore *pCore)
 
 void ConsoleWidget::on_lineEdit_textEdited(const QString &arg1)
 {
+	Q_UNUSED( arg1 )
 	//print("dd", ::LOG_TYPE::LT_NORMAL);
 	//QToolTip::showText(ui->plainTextEdit->mapToGlobal(QPoint()), tr("Invalid Input"));
 }

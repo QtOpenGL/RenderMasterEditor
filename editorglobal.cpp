@@ -3,6 +3,7 @@
 
 API EditorGlobal::Call(vec3 *pos)
 {
+	Q_UNUSED( pos )
 	_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
 	return S_OK;
 }
@@ -44,7 +45,7 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 			}
 
 			_someObejctSelected = 1;
-			_numberSelectedObjects = selectedGameObjects.size();
+			_numberSelectedObjects = (int)selectedGameObjects.size();
 
 			_selectionGameObject = selectedGameObjects[0];
 			_selectionGameObject->AddRef();

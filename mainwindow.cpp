@@ -293,24 +293,28 @@ void MainWindow::switch_button(QAction *action)
 
 void MainWindow::on_actionactionCursorSelect_triggered(bool checked)
 {
+	Q_UNUSED( checked )
 	editor->ManipulatorPressed(MANIPULATOR::SELECT);
 	switch_button(ui->actionactionCursorSelect);
 }
 
 void MainWindow::on_actionactionManipulatorRotate_triggered(bool checked)
 {
+	Q_UNUSED( checked )
 	editor->ManipulatorPressed(MANIPULATOR::ROTATE);
 	switch_button(ui->actionactionManipulatorRotate);
 }
 
 void MainWindow::on_actionManipulatorScale_triggered(bool checked)
 {
+	Q_UNUSED( checked )
 	editor->ManipulatorPressed(MANIPULATOR::SCALE);
 	switch_button(ui->actionManipulatorScale);
 }
 
 void MainWindow::on_actionactionManipulatorTransform_triggered(bool checked)
 {
+	Q_UNUSED( checked )
 	editor->ManipulatorPressed(MANIPULATOR::TRANSLATE);
 	switch_button(ui->actionactionManipulatorTransform);
 }
