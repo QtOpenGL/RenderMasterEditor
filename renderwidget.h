@@ -24,7 +24,6 @@ class RenderWidget : public QWidget
 	RENDER_MASTER::IRender *pRender{nullptr};
 	RENDER_MASTER::ISceneManager *pSceneManager{nullptr};
 	RENDER_MASTER::IResourceManager *pResMan{nullptr};
-   // RENDER_MASTER::ICamera *pCamera{nullptr};
 
 	int rightMouse{};
     QPoint lastMousePos;
@@ -47,11 +46,7 @@ class RenderWidget : public QWidget
 	const float moveSpeed = 40.0f;
 
 	// resources
-	IMesh *_pAxesMesh;
-	IMesh *_pAxesArrowMesh;
 	IMesh *_pGridMesh;
-
-//	RENDER_MASTER::IUniformBuffer *paramsBuffer{nullptr};
 
 public:
     explicit RenderWidget(QWidget *parent = 0);
@@ -68,8 +63,8 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 
-	void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera);
-	void RenderWidget::_draw_grid(const mat4& VP, ICamera *pCameras);
+	void drawManipulator(ICamera *pCamera);
+	void drawGrid(const mat4& VP);
 
 
 private slots:
@@ -77,12 +72,9 @@ private slots:
     void onEngineClosed(RENDER_MASTER::ICore *pCore);
     void onRender();
 	void onUpdate(float dt);
-	void onManipulatorPressed(MANIPULATOR m);
 	void onFocusAtSelected(const vec3& worldCeneter, const RENDER_MASTER::AABB& aabb);
 
 private:
-
-	MANIPULATOR _currentManipulator{MANIPULATOR::SELECT};
 
 	Ui::D3D11Widget *ui;
 };

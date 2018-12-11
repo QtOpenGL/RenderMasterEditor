@@ -2,10 +2,13 @@
 #define EDITORGLOBAL_H
 
 #include <QObject>
+
 #include "propertieswidget.h"
 #include "scenetreewidget.h"
+#include "manipulators/IManipulator.h"
 
 #include <vector>
+#include <memory>
 
 
 enum class MANIPULATOR
@@ -26,8 +29,10 @@ class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber
 	int _someObejctSelected = 0;
 	int _numberSelectedObjects = 0;
 
+	std::unique_ptr<IManipulator> _manipulator;
+	MANIPULATOR _manipulatorType = MANIPULATOR::SELECT;
+
 	API Call(OUT vec3 *pos) override;
-	//API Call(OUT quat *rot) override;
 
 public:
     explicit EditorGlobal();
@@ -47,13 +52,14 @@ public:
 	//
 	void RaiseFocusOnSelevtedObjects();
 
+	// Manipulators
+	//
+	void ToggleManipulator(MANIPULATOR manipulator);
+	IManipulator *CurrentManipulator() { return _manipulator.get(); }
+
 signals:
 
 	void SceneTreeInited(SceneTreeWidget *sceneTreeWidget);
-
-	// Toolbar
-	//
-	void ManipulatorPressed(MANIPULATOR manipulator);
 
 	// Objects Selection
 	//

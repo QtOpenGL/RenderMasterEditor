@@ -32,7 +32,6 @@ RenderWidget::RenderWidget(QWidget *parent) :
 	connect(eng, &EngineGlobal::OnRender, this, &RenderWidget::onRender, Qt::DirectConnection);
 	connect(eng, &EngineGlobal::OnUpdate, this, &RenderWidget::onUpdate, Qt::DirectConnection);
 
-	connect(editor, &EditorGlobal::ManipulatorPressed, this, &RenderWidget::onManipulatorPressed, Qt::DirectConnection);
 	connect(editor, &EditorGlobal::OnFocusAtSelectded, this, &RenderWidget::onFocusAtSelected, Qt::DirectConnection);
 
 	h = (HWND)winId();
@@ -114,66 +113,21 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
 	if (event->key() == Qt::Key_E) {key_e = 0; }
 }
 
-void RenderWidget::_draw_axes(const mat4& VP, ICamera *pCamera)
+void RenderWidget::drawManipulator(ICamera *pCamera)
 {
-	Q_UNUSED( pCamera )
-
-	if (MANIPULATOR::TRANSLATE != _currentManipulator)
-		return;
-
 	if (!editor->IsSomeObjectSelected())
 		return;
 
-	ShaderRequirement req;
-	req.attributes = INPUT_ATTRUBUTE::POSITION | INPUT_ATTRUBUTE::COLOR;
+	IManipulator *m = editor->CurrentManipulator();
 
-	IShader *shader{nullptr};
-	pRender->PreprocessStandardShader(&shader, &req);
-	if (!shader)
-		return;
+	if (!m) return;
 
-	shader->AddRef();
+	m->render(pCamera, rect(), pRender, pCoreRender);
 
-	pCoreRender->SetShader(shader);
-
-	uint h = rect().height();
-
-	mat4 modelWorldTransform = editor->GetSelectionCeneter();
-
-	mat4 axisWorldTransform;
-
-	axisWorldTransform.el_2D[0][3] = modelWorldTransform.el_2D[0][3];
-	axisWorldTransform.el_2D[1][3] = modelWorldTransform.el_2D[1][3];
-	axisWorldTransform.el_2D[2][3] = modelWorldTransform.el_2D[2][3];
-
-	vec4 view4 = VP * vec4(axisWorldTransform.el_2D[0][3], axisWorldTransform.el_2D[1][3], axisWorldTransform.el_2D[2][3], 1.0f);
-	vec3 view(view4);
-	float dist = view.Lenght();
-
-	axisWorldTransform.el_2D[0][0] = (80.0f / h) * dist;
-	axisWorldTransform.el_2D[1][1] = (80.0f / h) * dist;
-	axisWorldTransform.el_2D[2][2] = (80.0f / h) * dist;
-
-	mat4 MVP = VP * axisWorldTransform;
-	shader->SetMat4Parameter("MVP", &MVP);
-	shader->SetVec4Parameter("main_color", &vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	shader->FlushParameters();
-
-	pCoreRender->SetDepthState(false);
-
-	pCoreRender->SetMesh(_pAxesMesh);
-	pCoreRender->Draw(_pAxesMesh);
-
-	pCoreRender->SetMesh(_pAxesArrowMesh);
-	pCoreRender->Draw(_pAxesArrowMesh);
-
-	shader->Release();
 }
 
-void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
+void RenderWidget::RenderWidget::drawGrid(const mat4 &VP)
 {
-	Q_UNUSED( pCamera )
-
 	ShaderRequirement req;
 	req.attributes = INPUT_ATTRUBUTE::POSITION;
 
@@ -190,7 +144,7 @@ void RenderWidget::RenderWidget::_draw_grid(const mat4 &VP, ICamera *pCamera)
 	shader->SetVec4Parameter("main_color", &vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	shader->FlushParameters();
 
-	pCoreRender->SetDepthState(true);
+	pCoreRender->SetDepthTest(1);
 
 	pCoreRender->SetMesh(_pGridMesh);
 	pCoreRender->Draw(_pGridMesh);
@@ -220,10 +174,10 @@ void RenderWidget::onRender()
 
 	eng->getCoreRender()->PushStates();
 	{
-		// axes, grid
+		// manipulator, grid
 		{
-			_draw_grid(VP, pCamera);
-			_draw_axes(VP, pCamera);
+			drawGrid(VP);
+			drawManipulator(pCamera);
 
 			pCoreRender->SwapBuffers();
 		}
@@ -247,7 +201,7 @@ void RenderWidget::onRender()
 			render->GetRenderTexture2D(&depthIdTex, w, h, TEXTURE_FORMAT::D24S8);
 			depthIdTex->AddRef();
 
-			eng->getCoreRender()->SetDepthState(1);
+			eng->getCoreRender()->SetDepthTest(1);
 
 			render->RenderPassIDPass(pCamera, idTex, depthIdTex);
 
@@ -354,8 +308,6 @@ void RenderWidget::onUpdate(float dt)
 	}
 }
 
-void RenderWidget::onManipulatorPressed(MANIPULATOR m) { _currentManipulator = m; }
-
 void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTER::AABB& aabb)
 {
 	if (!pCore)
@@ -396,12 +348,6 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 	pCore->GetSubSystem((ISubSystem **)&pResMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-	pResMan->LoadMesh(&_pAxesMesh, "std#axes");
-	_pAxesMesh->AddRef();
-
-	pResMan->LoadMesh(&_pAxesArrowMesh, "std#axes_arrows");
-	_pAxesArrowMesh->AddRef();
-
 	pResMan->LoadMesh(&_pGridMesh, "std#grid");
 	_pGridMesh->AddRef();
 }
@@ -410,8 +356,6 @@ void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
 	Q_UNUSED( pCoreIn )
 
-	_pAxesArrowMesh->Release();
-	_pAxesMesh->Release();
 	_pGridMesh->Release();
 
 	pCore = nullptr;

@@ -37,7 +37,10 @@ SOURCES += main.cpp\
     projectview.cpp \
     propertieswidget.cpp \
     editorglobal.cpp \
-    about.cpp
+    about.cpp \
+    manipulators/ManipulatorTranslator.cpp \
+    manipulators/IManipulator.cpp \
+    manipulators/ManipulatorUtils.cpp
 
 HEADERS  += mainwindow.h \
     dialog.h \
@@ -52,7 +55,10 @@ HEADERS  += mainwindow.h \
     myspinbox.h \
     mylineedit.h \
     about.h \
-    common.h
+    common.h \
+    manipulators/ManipulatorTranslator.h \
+    manipulators/IManipulator.h \
+    manipulators/ManipulatorUtils.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \

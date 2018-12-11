@@ -1,5 +1,8 @@
 #include "editorglobal.h"
+#include "manipulators/ManipulatorTranslator.h"
+#include "EngineGlobal.h"
 
+extern EngineGlobal* eng;
 
 API EditorGlobal::Call(vec3 *pos)
 {
@@ -72,6 +75,23 @@ void EditorGlobal::RaiseFocusOnSelevtedObjects()
 		AABB aabb = {-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f};
 
 		emit OnFocusAtSelectded(worldCeneter, aabb);
+	}
+}
+
+void EditorGlobal::ToggleManipulator(MANIPULATOR manipulator)
+{
+	if (manipulator == _manipulatorType)
+		return;
+
+	_manipulatorType = manipulator;
+
+	RENDER_MASTER::ICore *core;
+	eng->GetCore(core);
+
+	switch (manipulator)
+	{
+		case MANIPULATOR::SELECT: _manipulator = nullptr; break;
+		case MANIPULATOR::TRANSLATE: _manipulator = std::unique_ptr<IManipulator>(new ManipulatorTranslator(core)); break;
 	}
 }
 
