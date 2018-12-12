@@ -11,6 +11,35 @@ API EditorGlobal::Call(vec3 *pos)
 	return S_OK;
 }
 
+API EditorGlobal::Call(quat *rot)
+{
+	Q_UNUSED( rot )
+	_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
+	return S_OK;
+}
+
+void EditorGlobal::_unsubscribe(IGameObject *go)
+{
+	IPositionEvent *evTranslate;
+	_selectionGameObject->GetPositionEv(&evTranslate);
+	evTranslate->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
+	IRotationEvent *evRot;
+	_selectionGameObject->GetRotationEv(&evRot);
+	evRot->Unsubscribe(dynamic_cast<IRotationEventSubscriber*>(this));
+}
+
+void EditorGlobal::_subscribe(IGameObject *go)
+{
+	IPositionEvent *evTranslate;
+	_selectionGameObject->GetPositionEv(&evTranslate);
+	evTranslate->Subscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+
+	IRotationEvent *evRot;
+	_selectionGameObject->GetRotationEv(&evRot);
+	evRot->Subscribe(dynamic_cast<IRotationEventSubscriber*>(this));
+}
+
 EditorGlobal::EditorGlobal()
 {
 }
@@ -24,9 +53,7 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 
 		if (_selectionGameObject)
 		{
-			IPositionEvent *ev;
-			_selectionGameObject->GetPositionEv(&ev);
-			ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+			_unsubscribe(_selectionGameObject);
 
 			_selectionGameObject->Release();
 			_selectionGameObject = nullptr;
@@ -39,9 +66,7 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 		{
 			if (_selectionGameObject)
 			{
-				IPositionEvent *ev;
-				_selectionGameObject->GetPositionEv(&ev);
-				ev->Unsubscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+				_unsubscribe(_selectionGameObject);
 
 				_selectionGameObject->Release();
 				_selectionGameObject = nullptr;
@@ -54,9 +79,7 @@ void EditorGlobal::ChangeSelection(const std::vector<IGameObject *> &selectedGam
 			_selectionGameObject->AddRef();
 			_selectionGameObject->GetModelMatrix(&_selectionCenterWorldTransform);
 
-			IPositionEvent *ev;
-			_selectionGameObject->GetPositionEv(&ev);
-			ev->Subscribe(dynamic_cast<IPositionEventSubscriber*>(this));
+			_subscribe(_selectionGameObject);
 
 			selectionChanged(selectedGameObjects);
 		}

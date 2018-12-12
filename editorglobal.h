@@ -20,7 +20,7 @@ enum class MANIPULATOR
 };
 
 
-class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber
+class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber, RENDER_MASTER::IRotationEventSubscriber
 {
     Q_OBJECT
 
@@ -33,6 +33,10 @@ class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber
 	MANIPULATOR _manipulatorType = MANIPULATOR::SELECT;
 
 	API Call(OUT vec3 *pos) override;
+	API Call(OUT quat *rot) override;
+
+	void _unsubscribe(IGameObject *go);
+	void _subscribe(IGameObject *go);
 
 public:
     explicit EditorGlobal();

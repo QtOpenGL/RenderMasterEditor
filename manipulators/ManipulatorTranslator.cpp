@@ -80,25 +80,19 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 	pCoreRender->SetShader(shader);
 
-	uint h = screen.height();
+	mat4 selectionWorldTransform = editor->GetSelectionCeneter();
 
-	mat4 modelWorldTransform = editor->GetSelectionCeneter();
-
-	mat4 axisWorldTransform;
-
-	axisWorldTransform.el_2D[0][3] = modelWorldTransform.el_2D[0][3];
-	axisWorldTransform.el_2D[1][3] = modelWorldTransform.el_2D[1][3];
-	axisWorldTransform.el_2D[2][3] = modelWorldTransform.el_2D[2][3];
-
-	vec4 view4 = VP * vec4(axisWorldTransform.el_2D[0][3], axisWorldTransform.el_2D[1][3], axisWorldTransform.el_2D[2][3], 1.0f);
+	vec4 view4 = VP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
 	vec3 view(view4);
 	float dist = view.Lenght();
 
-	axisWorldTransform.el_2D[0][0] = (80.0f / h) * dist;
-	axisWorldTransform.el_2D[1][1] = (80.0f / h) * dist;
-	axisWorldTransform.el_2D[2][2] = (80.0f / h) * dist;
+	mat4 distanceScaleMat;
+	uint h = screen.height();
+	distanceScaleMat.el_2D[0][0] = (80.0f / h) * dist;
+	distanceScaleMat.el_2D[1][1] = (80.0f / h) * dist;
+	distanceScaleMat.el_2D[2][2] = (80.0f / h) * dist;
 
-	mat4 MVP = VP * axisWorldTransform;
+	mat4 MVP = VP * selectionWorldTransform * distanceScaleMat;
 	shader->SetMat4Parameter("MVP", &MVP);
 	shader->SetVec4Parameter("main_color", &vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	shader->FlushParameters();
@@ -109,7 +103,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	pCoreRender->Draw(_pAxesArrowMesh);
 
 	shader->Release();
-
 }
 
 void ManipulatorTranslator::onEngineClosed(ICore *pCore)
