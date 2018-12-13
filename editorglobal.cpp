@@ -114,7 +114,7 @@ void EditorGlobal::ToggleManipulator(MANIPULATOR manipulator)
 	switch (manipulator)
 	{
 		case MANIPULATOR::SELECT: _manipulator = nullptr; break;
-		case MANIPULATOR::TRANSLATE: _manipulator = std::unique_ptr<IManipulator>(new ManipulatorTranslator(core)); break;
+		case MANIPULATOR::TRANSLATE: _manipulator = std::unique_ptr<ManipulatorBase>(new ManipulatorTranslator(core)); break;
 	}
 }
 

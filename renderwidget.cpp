@@ -118,7 +118,7 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 	if (!editor->IsSomeObjectSelected())
 		return;
 
-	IManipulator *m = editor->CurrentManipulator();
+	ManipulatorBase *m = editor->CurrentManipulator();
 
 	if (!m) return;
 
