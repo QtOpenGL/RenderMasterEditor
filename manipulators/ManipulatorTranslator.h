@@ -4,10 +4,16 @@
 #include "ManipulatorBase.h"
 
 
+enum class AXIS
+{
+	X,
+	Y,
+	Z
+};
+
 class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
-
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}

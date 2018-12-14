@@ -38,39 +38,19 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	pCamera->GetViewProjectionMatrix(&VP, aspect);
 
 	{
-		ShaderRequirement req;
-		req.attributes = INPUT_ATTRUBUTE::POSITION;
+		vec3 N;
+		mat4 axisTransform = editor->GetSelectionTransform();
+		N = axisTransform.Column3(2);
 
-		IShader *shader{nullptr};
-		pRender->PreprocessStandardShader(&shader, &req);
-		if (!shader)
-			return;
+		vec3 origin = axisTransform.Column3(3);
 
-		shader->AddRef();
+		Plane plane(N, origin);
 
-		pCoreRender->SetShader(shader);
-
-		mat4 scaleMat;
-		scaleMat.el_2D[0][0] = 0.2f;
-		scaleMat.el_2D[1][1] = 0.2f;
-		scaleMat.el_2D[2][2] = 0.2f;
-
-		mat4 selectionWorldTransform = editor->GetSelectionTransform();
-		mat4 MVP = VP * selectionWorldTransform * scaleMat;
-
-		shader->SetMat4Parameter("MVP", &MVP);
-		shader->FlushParameters();
-
-		pCoreRender->SetDepthTest(1);
-
-		pCoreRender->SetMesh(_pGrid);
-		pCoreRender->Draw(_pGrid);
-
-		shader->Release();
+		_drawPlane(plane, pCamera, screen, pRender, pCoreRender);
 	}
 	{
 		ShaderRequirement req;
-		req.attributes = INPUT_ATTRUBUTE::POSITION | INPUT_ATTRUBUTE::COLOR;
+		req.attributes = INPUT_ATTRUBUTE::POSITION;
 
 		IShader *shader = nullptr;
 		pRender->PreprocessStandardShader(&shader, &req);
@@ -93,15 +73,39 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		distanceScaleMat.el_2D[1][1] = (80.0f / h) * dist;
 		distanceScaleMat.el_2D[2][2] = (80.0f / h) * dist;
 
-		mat4 MVP = VP * selectionWorldTransform * distanceScaleMat;
-		shader->SetMat4Parameter("MVP", &MVP);
-		shader->SetVec4Parameter("main_color", &vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		shader->FlushParameters();
-
 		pCoreRender->SetDepthTest(0);
 
-		pCoreRender->Draw(_pAxesMesh);
-		pCoreRender->Draw(_pAxesArrowMesh);
+		auto draw_axis = [&](AXIS type) -> void
+		{
+			mat4 correctionMat(1.0f);
+
+			if (type == AXIS::Y)
+			{
+				correctionMat.el_2D[0][0] = 0.0f;
+				correctionMat.el_2D[1][1] = 0.0f;
+				correctionMat.el_2D[1][0] = 1.0f;
+				correctionMat.el_2D[0][1] = 1.0f;
+			} else if (type == AXIS::Z)
+			{
+				correctionMat.el_2D[0][0] = 0.0f;
+				correctionMat.el_2D[2][2] = 0.0f;
+				correctionMat.el_2D[2][0] = 1.0f;
+				correctionMat.el_2D[0][2] = 1.0f;
+			}
+			mat4 MVP = VP * selectionWorldTransform * distanceScaleMat * correctionMat;
+			shader->SetMat4Parameter("MVP", &MVP);
+
+			vec4 color = vec4(0,0,0,1.0f);
+			color.xyzw[(int)type] = 1.0f;
+			shader->SetVec4Parameter("main_color", &color);
+			shader->FlushParameters();
+			pCoreRender->Draw(_pAxesMesh);
+			pCoreRender->Draw(_pAxesArrowMesh);
+		};
+
+		draw_axis(AXIS::X);
+		draw_axis(AXIS::Y);
+		draw_axis(AXIS::Z);
 
 		shader->Release();
 	}

@@ -17,7 +17,7 @@ protected:
 	RENDER_MASTER::IMesh *_pGrid = nullptr;
 
 	void _free();
-	//void _drawPlane(const Plane& plane);
+	void _drawPlane(const Plane& plane, RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender);
 
 public:
 	ManipulatorBase(RENDER_MASTER::ICore *pCore);
