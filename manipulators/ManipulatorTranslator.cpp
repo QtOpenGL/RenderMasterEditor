@@ -75,7 +75,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 		pCoreRender->SetDepthTest(0);
 
-		auto draw_axis = [&](AXIS type) -> void
+		auto draw_axis = [&](AXIS type, const vec4& color) -> void
 		{
 			mat4 correctionMat(1.0f);
 
@@ -95,8 +95,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			mat4 MVP = VP * selectionWorldTransform * distanceScaleMat * correctionMat;
 			shader->SetMat4Parameter("MVP", &MVP);
 
-			vec4 color = vec4(0,0,0,1.0f);
-			color.xyzw[(int)type] = 1.0f;
 			shader->SetVec4Parameter("main_color", &color);
 
 			shader->FlushParameters();
@@ -105,9 +103,14 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			pCoreRender->Draw(_pAxesArrowMesh);
 		};
 
-		draw_axis(AXIS::X);
-		draw_axis(AXIS::Y);
-		draw_axis(AXIS::Z);
+		static const vec4 colorWhite = vec4(1,1,1,1);
+		static const vec4 colorRed = vec4(1,0,0,1);
+		static const vec4 colorGreen = vec4(0,1,0,1);
+		static const vec4 colorBlue = vec4(0,0,1,1);
+
+		draw_axis(AXIS::X, colorRed);
+		draw_axis(AXIS::Y, colorGreen);
+		draw_axis(AXIS::Z, colorBlue);
 
 		shader->Release();
 	}
