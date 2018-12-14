@@ -40,7 +40,8 @@ SOURCES += main.cpp\
     about.cpp \
     manipulators/ManipulatorTranslator.cpp \
     manipulators/ManipulatorUtils.cpp \
-    manipulators/ManipulatorBase.cpp
+    manipulators/ManipulatorBase.cpp \
+    common.cpp
 
 HEADERS  += mainwindow.h \
     dialog.h \

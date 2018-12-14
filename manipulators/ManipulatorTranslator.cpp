@@ -1,6 +1,7 @@
 #include "ManipulatorTranslator.h"
 #include "editorglobal.h"
 #include "EngineGlobal.h"
+#include "common.h"
 
 using namespace RENDER_MASTER;
 
@@ -37,14 +38,36 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	float aspect = (float)screen.width() / screen.height();
 	pCamera->GetViewProjectionMatrix(&VP, aspect);
 
+	mat4 camTransform;
+	pCamera->GetModelMatrix(&camTransform);
+	vec3 cameraPosition = camTransform.Column3(3);
+
+
+//	void draw_vector = [&](const vec3& v, const origin) -> void
+//	{
+
+//	};
+
 	{
-		vec3 N;
 		mat4 axisTransform = editor->GetSelectionTransform();
-		N = axisTransform.Column3(2);
+
+		vec3 axis = axisTransform.Column3(0);
+		vec3 V = (cameraPosition - axisTransform.Column3(3)).Normalized();
+		vec3 tmp = V.Cross(axis);
+		vec3 N = tmp.Cross(V);
 
 		vec3 origin = axisTransform.Column3(3);
-
 		Plane plane(N, origin);
+
+		qDebug() <<vec3ToString(N);
+
+		Line3D r = Line3D(V, cameraPosition);
+
+		vec3 i;
+		if (LineIntersectPlane(i, plane, r))
+		{
+			qDebug() <<vec3ToString(i);
+		}
 
 		_drawPlane(plane, pCamera, screen, pRender, pCoreRender);
 	}
