@@ -32,45 +32,17 @@ void ManipulatorTranslator::endDrag()
 
 }
 
-void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
+void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& mousePos)
 {
 	mat4 VP;
 	float aspect = (float)screen.width() / screen.height();
 	pCamera->GetViewProjectionMatrix(&VP, aspect);
 
-	mat4 camTransform;
-	pCamera->GetModelMatrix(&camTransform);
-	vec3 cameraPosition = camTransform.Column3(3);
+    mat4 camModelMatrix;
+    pCamera->GetModelMatrix(&camModelMatrix);
+    vec3 cameraPosition = camModelMatrix.Column3(3);
 
 
-//	void draw_vector = [&](const vec3& v, const origin) -> void
-//	{
-
-//	};
-
-	{
-		mat4 axisTransform = editor->GetSelectionTransform();
-
-		vec3 axis = axisTransform.Column3(0);
-		vec3 V = (axisTransform.Column3(3) - cameraPosition).Normalized();
-		vec3 tmp = V.Cross(axis);
-        vec3 N = tmp.Cross(axis).Normalized();
-
-		vec3 origin = axisTransform.Column3(3);
-		Plane plane(N, origin);
-
-		qDebug() <<vec3ToString(N);
-
-		Line3D r = Line3D((axisTransform.Column3(3) - cameraPosition + vec3(1.0f,0,0)), cameraPosition);
-
-		vec3 i;
-		if (LineIntersectPlane(i, plane, r))
-		{
-			qDebug() <<vec3ToString(i);
-		}
-
-		_drawPlane(plane, pCamera, screen, pRender, pCoreRender);
-	}
 	{
 		ShaderRequirement req;
 		req.attributes = INPUT_ATTRUBUTE::POSITION;
@@ -131,9 +103,64 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		static const vec4 colorGreen = vec4(0,1,0,1);
 		static const vec4 colorBlue = vec4(0,0,1,1);
 
-		draw_axis(AXIS::X, colorRed);
-		draw_axis(AXIS::Y, colorGreen);
-		draw_axis(AXIS::Z, colorBlue);
+        //draw_axis(AXIS::X, colorRed);
+        //draw_axis(AXIS::Y, colorGreen);
+        //draw_axis(AXIS::Z, colorBlue);
+
+        // debug
+        {
+
+            auto draw_vector_debug = [&](const vec3& v, const vec4& color) -> void
+            {
+                vec3 vN = v.Normalized();
+                mat4 basis(0.0f);
+                basis.SetColumn3(0, vN);
+
+                qDebug() << "draw_vector_debug N:" << vec3ToString(vN);
+
+                mat4 MVP = VP * selectionWorldTransform * basis * distanceScaleMat;
+                shader->SetMat4Parameter("MVP", &MVP);
+
+                shader->SetVec4Parameter("main_color", &color);
+
+                shader->FlushParameters();
+
+                pCoreRender->Draw(_pAxesMesh);
+                pCoreRender->Draw(_pAxesArrowMesh);
+            };
+
+            float camFov;
+            pCamera->GetFovAngle(&camFov);
+
+            mat4 axisTransform = editor->GetSelectionTransform();
+
+            vec3 axis = axisTransform.Column3(0).Normalized();
+            vec3 V1 = (axisTransform.Column3(3) - cameraPosition).Normalized();
+            vec3 tmp = V1.Cross(axis).Normalized();
+            vec3 N = axis.Cross(tmp).Normalized();
+
+            draw_vector_debug(tmp, colorRed);
+            draw_vector_debug(N, colorGreen);
+            draw_vector_debug(V1, colorGreen);
+
+            vec3 origin = axisTransform.Column3(3);
+            Plane plane(N, origin);
+
+
+
+            //Line3D r = Line3D((axisTransform.Column3(3) - cameraPosition + vec3(1.0f,0,0)), cameraPosition);
+            Line3D r = MouseToRay(camModelMatrix, camFov, aspect, mousePos);
+
+            vec3 i;
+            if (LineIntersectPlane(i, plane, r))
+            {
+                qDebug() <<"intersection x:" << vec3ToString(i);
+            }
+
+
+            //_drawPlane(plane, pCamera, screen, pRender, pCoreRender);
+
+        }
 
 		shader->Release();
 	}

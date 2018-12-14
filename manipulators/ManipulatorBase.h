@@ -27,7 +27,7 @@ public:
 	virtual void beginDrag(const QPointF& mousePos) = 0;
 	virtual void drag(const QPointF& mousePos) = 0;
 	virtual void endDrag() = 0;
-	virtual void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender) = 0;
+    virtual void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender, const vec2& mousePos) = 0;
 
 private slots:
 	void onEngineClosed(RENDER_MASTER::ICore *pCore);

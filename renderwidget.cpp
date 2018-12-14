@@ -19,6 +19,8 @@ RenderWidget::RenderWidget(QWidget *parent) :
 {
 	ui->setupUi(this);
 
+    setMouseTracking(true);
+
 	setAttribute(Qt::WA_NoBackground);
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -83,6 +85,11 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
+    currentMouseX = event->pos().x();
+    currentMouseY = event->pos().y();
+
+    //qDebug() << currentMouseX;
+
 	if (pCore && rightMouse /*&& event->button() == Qt::RightButton*/)
 	{
 		dx = event->pos().x() - lastMousePos.x();
@@ -122,7 +129,14 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 
 	if (!m) return;
 
-	m->render(pCamera, rect(), pRender, pCoreRender);
+    int w = size().width();
+    int h = size().height();
+
+    vec2 mouse = vec2((float)currentMouseX / w, (float)(h - currentMouseY) / h);
+
+    qDebug() << mouse.x << mouse.y;
+
+    m->render(pCamera, rect(), pRender, pCoreRender, mouse);
 
 }
 

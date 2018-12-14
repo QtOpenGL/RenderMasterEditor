@@ -1,6 +1,8 @@
 #ifndef MANIPULATORUTILS_H
 #define MANIPULATORUTILS_H
 #include <VectorMath.h>
+#include "common.h"
+#include <QDebug>
 
 
 struct Plane
@@ -25,5 +27,6 @@ struct Line3D
 
 bool LineIntersectPlane(vec3& intersection, const Plane& plane, const Line3D& line);
 
+Line3D MouseToRay(const mat4& cameraModelMatrix, float fov, float aspect, const vec2& normalizedMousePos);
 
 #endif // MANIPULATORUTILS_H

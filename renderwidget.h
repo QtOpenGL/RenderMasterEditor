@@ -32,6 +32,8 @@ class RenderWidget : public QWidget
 	int needCaptureId = 0;
 	uint captureX = 0, captureY = 0;
 
+    uint currentMouseX = 0, currentMouseY = 0;
+
     int key_w{};
     int key_s{};
     int key_a{};
