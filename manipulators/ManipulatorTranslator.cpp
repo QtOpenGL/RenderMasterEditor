@@ -52,16 +52,16 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		mat4 axisTransform = editor->GetSelectionTransform();
 
 		vec3 axis = axisTransform.Column3(0);
-		vec3 V = (cameraPosition - axisTransform.Column3(3)).Normalized();
+		vec3 V = (axisTransform.Column3(3) - cameraPosition).Normalized();
 		vec3 tmp = V.Cross(axis);
-		vec3 N = tmp.Cross(V);
+        vec3 N = tmp.Cross(axis).Normalized();
 
 		vec3 origin = axisTransform.Column3(3);
 		Plane plane(N, origin);
 
 		qDebug() <<vec3ToString(N);
 
-		Line3D r = Line3D(V, cameraPosition);
+		Line3D r = Line3D((axisTransform.Column3(3) - cameraPosition + vec3(1.0f,0,0)), cameraPosition);
 
 		vec3 i;
 		if (LineIntersectPlane(i, plane, r))

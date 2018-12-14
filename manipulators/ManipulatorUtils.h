@@ -8,7 +8,7 @@ struct Plane
 	vec3 origin;
 	vec3 normal;
 
-	Plane(const vec3& originIn, const vec3& normalIn) :
+	Plane(const vec3& normalIn, const vec3& originIn) :
 		origin(originIn), normal(normalIn){}
 };
 
@@ -18,7 +18,7 @@ struct Line3D
 	vec3 origin;
 	vec3 direction;
 
-	Line3D(const vec3& originIn, const vec3& directionlIn) :
+	Line3D(const vec3& directionlIn, const vec3& originIn) :
 		origin(originIn), direction(directionlIn){}
 };
 
