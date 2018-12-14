@@ -98,7 +98,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			vec4 color = vec4(0,0,0,1.0f);
 			color.xyzw[(int)type] = 1.0f;
 			shader->SetVec4Parameter("main_color", &color);
+
 			shader->FlushParameters();
+
 			pCoreRender->Draw(_pAxesMesh);
 			pCoreRender->Draw(_pAxesArrowMesh);
 		};
