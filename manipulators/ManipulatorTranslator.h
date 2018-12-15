@@ -17,6 +17,7 @@ class ManipulatorTranslator : public ManipulatorBase
 	Q_OBJECT
 
 	AXIS moiseHoverAxis = AXIS::NONE;
+	vec3 worldDelta;
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}
@@ -24,9 +25,9 @@ public:
 
 	// IManipulator interface
 public:
-	bool isMouseIntersects(const vec2& normalizedMousePos);
-	void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender, const vec2& normalizedMousePos);
-	void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender);
+	bool isMouseIntersects(const vec2& normalizedMousePos) override;
+	void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, const vec2& normalizedMousePos) override;
+	void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender) override;
 };
 
 #endif // MANIPULATORTRANSLATOR_H

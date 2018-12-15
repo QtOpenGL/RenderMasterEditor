@@ -10,7 +10,7 @@ extern EngineGlobal* eng;
 
 const float SelectDistance = 8.0f;
 const float MaxDistance = 1000000.0f;
-const vec3 AxesEndpointDelta[3] = {vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1)};
+const vec3 AxesEndpoints[3] = {vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1)};
 const vec4 ColorSelection = vec4(1,1,0,1);
 const vec4 ColorRed = vec4(1,0,0,1);
 const vec4 ColorGreen = vec4(0,1,0,1);
@@ -30,14 +30,7 @@ float axisWorldSize(uint h, float dist)
 	return (85.0f / h) * dist;
 }
 
-float distToSelection(const mat4& ViewProj, const mat4& selection)
-{
-	vec4 view4 = ViewProj * vec4(selection.el_2D[0][3], selection.el_2D[1][3], selection.el_2D[2][3], 1.0f);
-	vec3 view(view4);
-	return view.Lenght();
-}
-
-void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRender *render, ICoreRender *coreRender, const vec2 &normalizedMousePos)
+void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
 {
 	// screen
 	uint w = screen.width();
@@ -62,7 +55,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 
 	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
-	float distToSel = distToSelection(camViewProj, selectionWorldTransform);
+	float distToCenter = WorldDistance(camViewProj, selectionWorldTransform);
 	vec3 axisCenter = selectionWorldTransform.Column3(3);
 	vec3 V = (axisCenter - cameraPosition).Normalized();
 
@@ -82,7 +75,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 
 		   vec2 i = NdcToScreen(WorldToNdc(I, camViewProj), w, h);
 		   vec2 A = NdcToScreen(WorldToNdc(axisCenter, camViewProj), w, h);
-		   vec4 axisEndpointLocal = vec4(AxesEndpointDelta[(int)type] * axisWorldSize(h, distToSel));
+		   vec4 axisEndpointLocal = vec4(AxesEndpoints[(int)type] * axisWorldSize(h, distToCenter));
 		   vec4 axisEndpointWorld = selectionWorldTransform * axisEndpointLocal;
 		   vec2 Bndc = WorldToNdc(axisEndpointWorld.Vec3(), camViewProj);
 		   vec2 B = NdcToScreen(Bndc, w, h);
@@ -127,7 +120,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
-	float distToSel = distToSelection(camViewProj, selectionWorldTransform);
+	float distToCenter = WorldDistance(camViewProj, selectionWorldTransform);
 
 	{
 		ShaderRequirement req;
@@ -144,9 +137,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		pCoreRender->SetDepthTest(0);
 
 		mat4 distanceScaleMat;
-		distanceScaleMat.el_2D[0][0] = axisWorldSize(h, distToSel);
-		distanceScaleMat.el_2D[1][1] = axisWorldSize(h, distToSel);
-		distanceScaleMat.el_2D[2][2] = axisWorldSize(h, distToSel);
+		distanceScaleMat.el_2D[0][0] = axisWorldSize(h, distToCenter);
+		distanceScaleMat.el_2D[1][1] = axisWorldSize(h, distToCenter);
+		distanceScaleMat.el_2D[2][2] = axisWorldSize(h, distToCenter);
 
 		auto draw_axis = [&](AXIS type, const vec4& color) -> void
 		{

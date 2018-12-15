@@ -268,7 +268,7 @@ void RenderWidget::onUpdate(float dt)
 	// update manipulator
 	ManipulatorBase *m = editor->CurrentManipulator();
 	if (m)
-		m->update(pCamera, rect(), pRender, pCoreRender, normalizedMousePos);
+		m->update(pCamera, rect(), normalizedMousePos);
 
 	// update camera
 	if (!pCamera)
