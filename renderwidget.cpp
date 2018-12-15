@@ -134,7 +134,7 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 
     vec2 mouse = vec2((float)currentMouseX / w, (float)(h - currentMouseY) / h);
 
-    qDebug() << mouse.x << mouse.y;
+    //qDebug() << mouse.x << mouse.y;
 
     m->render(pCamera, rect(), pRender, pCoreRender, mouse);
 

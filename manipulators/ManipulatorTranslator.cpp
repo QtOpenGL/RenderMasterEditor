@@ -34,14 +34,16 @@ void ManipulatorTranslator::endDrag()
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& mousePos)
 {
-	mat4 VP;
+    mat4 camVP;
 	float aspect = (float)screen.width() / screen.height();
-	pCamera->GetViewProjectionMatrix(&VP, aspect);
+    pCamera->GetViewProjectionMatrix(&camVP, aspect);
 
     mat4 camModelMatrix;
     pCamera->GetModelMatrix(&camModelMatrix);
     vec3 cameraPosition = camModelMatrix.Column3(3);
 
+    mat4 camProjMat;
+    pCamera->GetProjectionMatrix(&camProjMat, aspect);
 
 	{
 		ShaderRequirement req;
@@ -58,7 +60,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 		mat4 selectionWorldTransform = editor->GetSelectionTransform();
 
-		vec4 view4 = VP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
+        vec4 view4 = camVP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
 		vec3 view(view4);
 		float dist = view.Lenght();
 
@@ -87,7 +89,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 				correctionMat.el_2D[2][0] = 1.0f;
 				correctionMat.el_2D[0][2] = 1.0f;
 			}
-			mat4 MVP = VP * selectionWorldTransform * distanceScaleMat * correctionMat;
+            mat4 MVP = camVP * selectionWorldTransform * distanceScaleMat * correctionMat;
 			shader->SetMat4Parameter("MVP", &MVP);
 
 			shader->SetVec4Parameter("main_color", &color);
@@ -103,9 +105,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		static const vec4 colorGreen = vec4(0,1,0,1);
 		static const vec4 colorBlue = vec4(0,0,1,1);
 
-        //draw_axis(AXIS::X, colorRed);
-        //draw_axis(AXIS::Y, colorGreen);
-        //draw_axis(AXIS::Z, colorBlue);
+        draw_axis(AXIS::X, colorRed);
+        draw_axis(AXIS::Y, colorGreen);
+        draw_axis(AXIS::Z, colorBlue);
 
         // debug
         {
@@ -116,9 +118,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
                 mat4 basis(0.0f);
                 basis.SetColumn3(0, vN);
 
-                qDebug() << "draw_vector_debug N:" << vec3ToString(vN);
+                //qDebug() << "draw_vector_debug N:" << vec3ToString(vN);
 
-                mat4 MVP = VP * selectionWorldTransform * basis * distanceScaleMat;
+                mat4 MVP = camVP * selectionWorldTransform * basis * distanceScaleMat;
                 shader->SetMat4Parameter("MVP", &MVP);
 
                 shader->SetVec4Parameter("main_color", &color);
@@ -139,22 +141,22 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
             vec3 tmp = V1.Cross(axis).Normalized();
             vec3 N = axis.Cross(tmp).Normalized();
 
-            draw_vector_debug(tmp, colorRed);
-            draw_vector_debug(N, colorGreen);
-            draw_vector_debug(V1, colorGreen);
+            //draw_vector_debug(tmp, colorRed);
+            //draw_vector_debug(N, colorGreen);
+           // draw_vector_debug(V1, colorGreen);
 
             vec3 origin = axisTransform.Column3(3);
             Plane plane(N, origin);
 
-
-
-            //Line3D r = Line3D((axisTransform.Column3(3) - cameraPosition + vec3(1.0f,0,0)), cameraPosition);
             Line3D r = MouseToRay(camModelMatrix, camFov, aspect, mousePos);
 
             vec3 i;
             if (LineIntersectPlane(i, plane, r))
             {
-                qDebug() <<"intersection x:" << vec3ToString(i);
+               //qDebug() <<"intersection x:" << vec3ToString(i);
+
+               vec2 p = WorldToNdc(i, camVP);
+               qDebug() <<"WorldToNdc(intersection x):" << vec2ToString(p);
             }
 
 

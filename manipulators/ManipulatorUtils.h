@@ -29,4 +29,6 @@ bool LineIntersectPlane(vec3& intersection, const Plane& plane, const Line3D& li
 
 Line3D MouseToRay(const mat4& cameraModelMatrix, float fov, float aspect, const vec2& normalizedMousePos);
 
+vec2 WorldToNdc(const vec3& pos, const mat4& Proj);
+
 #endif // MANIPULATORUTILS_H

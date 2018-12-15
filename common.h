@@ -6,6 +6,7 @@
 #include <VectorMath.h>
 
 QString vec3ToString(const vec3& v);
+QString vec2ToString(const vec2& v);
 float clamp(float f);
 
 template<typename T>
