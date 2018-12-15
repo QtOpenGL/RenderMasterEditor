@@ -32,10 +32,18 @@ void ManipulatorTranslator::endDrag()
 
 }
 
+float axisSize(uint h, float dist)
+{
+    return (80.0f / h) * dist;
+}
+
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& mousePos)
 {
+    uint w = screen.width();
+    uint h = screen.height();
+
     mat4 camVP;
-	float aspect = (float)screen.width() / screen.height();
+    float aspect = (float)w / h;
     pCamera->GetViewProjectionMatrix(&camVP, aspect);
 
     mat4 camModelMatrix;
@@ -65,10 +73,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		float dist = view.Lenght();
 
 		mat4 distanceScaleMat;
-		uint h = screen.height();
-		distanceScaleMat.el_2D[0][0] = (80.0f / h) * dist;
-		distanceScaleMat.el_2D[1][1] = (80.0f / h) * dist;
-		distanceScaleMat.el_2D[2][2] = (80.0f / h) * dist;
+        distanceScaleMat.el_2D[0][0] = axisSize(h, dist);
+        distanceScaleMat.el_2D[1][1] = axisSize(h, dist);
+        distanceScaleMat.el_2D[2][2] = axisSize(h, dist);
 
 		pCoreRender->SetDepthTest(0);
 
@@ -135,9 +142,10 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
             pCamera->GetFovAngle(&camFov);
 
             mat4 axisTransform = editor->GetSelectionTransform();
+            vec3 axisOrigin = axisTransform.Column3(3);
 
             vec3 axis = axisTransform.Column3(0).Normalized();
-            vec3 V1 = (axisTransform.Column3(3) - cameraPosition).Normalized();
+            vec3 V1 = (axisOrigin - cameraPosition).Normalized();
             vec3 tmp = V1.Cross(axis).Normalized();
             vec3 N = axis.Cross(tmp).Normalized();
 
@@ -155,8 +163,15 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
             {
                //qDebug() <<"intersection x:" << vec3ToString(i);
 
-               vec2 p = WorldToNdc(i, camVP);
-               qDebug() <<"WorldToNdc(intersection x):" << vec2ToString(p);
+               vec2 iScreen = NdcToScreen(WorldToNdc(i, camVP), w, h);
+               qDebug() <<"Intersection in screen:" << vec2ToString(iScreen);
+
+               vec2 p0Ndc = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
+               vec2 p1Ndc = NdcToScreen(WorldToNdc((axisOrigin + vec3(1,0,0) * axisSize(h, dist)), camVP), w, h);
+
+               //float distToX = SegmentPointDistance(p0Ndc, p1Ndc, iNdc);
+
+               //qDebug() << "distance:" <<
             }
 
 

@@ -343,7 +343,7 @@ void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTE
 	pCamera->GetFovAngle(&fovDegs);
 	float fovRads = fovDegs * DEGTORAD;
 
-	float objectHalfSize = max(max(abs(aabb.maxX - aabb.minX), abs(aabb.maxY - aabb.minY)), abs(aabb.maxZ - aabb.minZ));
+    float objectHalfSize = std::max(std::max(abs(aabb.maxX - aabb.minX), abs(aabb.maxY - aabb.minY)), abs(aabb.maxZ - aabb.minZ));
 
 	float distance = objectHalfSize / tan(fovRads * 0.5f);
 

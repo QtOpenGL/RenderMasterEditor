@@ -1,4 +1,5 @@
 #include "ManipulatorUtils.h"
+#include <algorithm>
 
 bool LineIntersectPlane(vec3& intersection, const Plane& plane, const Line3D& line)
 {
@@ -51,7 +52,15 @@ vec2 WorldToNdc(const vec3& pos, const mat4& ViewProj)
     return vec2(screenPos.x, screenPos.y);
 }
 
-float SegmentMouseDistance(const vec2& p1Ndc, const vec2& p2Ndc, const vec2& ndc)
+float SegmentPointDistance(const vec2& p0, const vec2& p1, const vec2& point)
 {
-return 0;
+    vec2 direction = vec2(p1.x - p0.x, p1.y - p0.y);
+    vec2 p00 = p0;
+    return (p00 + direction * clamp(direction.Dot(point - p00) / direction.Dot(direction), 0.0f, 1.0f) - point).Lenght();
+}
+
+vec2 NdcToScreen(const vec2 &ndc, uint w, uint h)
+{
+    vec2 tmp = ndc * 0.5f + vec2(0.5f, 0.5f);
+    return vec2(tmp.x * w, tmp.y * h);
 }
