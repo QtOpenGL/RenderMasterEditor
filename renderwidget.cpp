@@ -65,7 +65,7 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 
 	if (event->button() == Qt::LeftButton)
 	{
-		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
+		qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
 		needCaptureId = 1;
 		captureX = uint(event->pos().x());
 		captureY = uint(event->pos().y());
@@ -99,6 +99,9 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 		lastMousePos = event->pos();
 
 	}
+
+	needCaptureId = 0;
+
 	QWidget::mouseMoveEvent(event);
 }
 

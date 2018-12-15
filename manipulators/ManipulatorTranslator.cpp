@@ -30,6 +30,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 	uint w = screen.width();
 	uint h = screen.height();
 
+
 	// camera
 	mat4 camVP;
 	float aspect = (float)w / h;
@@ -57,6 +58,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 	vec3 axisOrigin = axisTransform.Column3(3);
 
 	vec3 V = (axisOrigin - cameraPosition).Normalized();
+
 
 	auto distance_to_axis = [&](const vec3& axis, const vec3& endPoint) -> float
 	{
@@ -106,7 +108,6 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 			moiseHoverAxis = (AXIS)i;
 		}
 	}
-
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
@@ -116,14 +117,14 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
     uint h = screen.height();
 
 	// camera
-	mat4 camVP;
+	mat4 camViewProj;
 	float aspect = (float)w / h;
-	pCamera->GetViewProjectionMatrix(&camVP, aspect);
+	pCamera->GetViewProjectionMatrix(&camViewProj, aspect);
 
 	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
 
-	vec4 view4 = camVP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
+	vec4 view4 = camViewProj * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
 	vec3 view(view4);
 	float dist = view.Lenght();
 
@@ -139,36 +140,33 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		shader->AddRef();
 
 		pCoreRender->SetShader(shader);
+		pCoreRender->SetDepthTest(0);
 
 		mat4 distanceScaleMat;
         distanceScaleMat.el_2D[0][0] = axisSize(h, dist);
         distanceScaleMat.el_2D[1][1] = axisSize(h, dist);
-        distanceScaleMat.el_2D[2][2] = axisSize(h, dist);
-
-		pCoreRender->SetDepthTest(0);
+        distanceScaleMat.el_2D[2][2] = axisSize(h, dist);		
 
 		auto draw_axis = [&](AXIS type, const vec4& color) -> void
 		{
-			mat4 correctionMat(1.0f);
+			mat4 rotationMat(1.0f);
 
 			if (type == AXIS::Y)
 			{
-				correctionMat.el_2D[0][0] = 0.0f;
-				correctionMat.el_2D[1][1] = 0.0f;
-				correctionMat.el_2D[1][0] = 1.0f;
-				correctionMat.el_2D[0][1] = 1.0f;
+				rotationMat.el_2D[0][0] = 0.0f;
+				rotationMat.el_2D[1][1] = 0.0f;
+				rotationMat.el_2D[1][0] = 1.0f;
+				rotationMat.el_2D[0][1] = 1.0f;
 			} else if (type == AXIS::Z)
 			{
-				correctionMat.el_2D[0][0] = 0.0f;
-				correctionMat.el_2D[2][2] = 0.0f;
-				correctionMat.el_2D[2][0] = 1.0f;
-				correctionMat.el_2D[0][2] = 1.0f;
+				rotationMat.el_2D[0][0] = 0.0f;
+				rotationMat.el_2D[2][2] = 0.0f;
+				rotationMat.el_2D[2][0] = 1.0f;
+				rotationMat.el_2D[0][2] = 1.0f;
 			}
-            mat4 MVP = camVP * selectionWorldTransform * distanceScaleMat * correctionMat;
+			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * rotationMat;
 			shader->SetMat4Parameter("MVP", &MVP);
-
 			shader->SetVec4Parameter("main_color", &color);
-
 			shader->FlushParameters();
 
 			pCoreRender->Draw(_pAxesMesh);
