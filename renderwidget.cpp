@@ -66,7 +66,8 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 	if (event->button() == Qt::LeftButton)
 	{
 		qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
-		needCaptureId = 1;
+		leftMousePressed = 1;
+		leftMouseClick = 1;
 		captureX = uint(event->pos().x());
 		captureY = uint(event->pos().y());
 	}
@@ -100,7 +101,7 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 
 	}
 
-	needCaptureId = 0;
+	leftMousePressed = 0;
 
 	QWidget::mouseMoveEvent(event);
 }
@@ -195,10 +196,10 @@ void RenderWidget::onRender()
 		ManipulatorBase *manipulator = editor->CurrentManipulator();
 
 		// picking. render id's
-		if ((!manipulator && needCaptureId) ||
-			(needCaptureId && manipulator && !manipulator->isMouseIntersects(normalizedMousePos)))
+		if ((!manipulator && leftMousePressed) ||
+			(leftMousePressed && manipulator && !manipulator->isMouseIntersects(normalizedMousePos)))
 		{
-			needCaptureId = 0;
+			leftMousePressed = 0;
 
 			IRender *render;
 			pCore->GetSubSystem((ISubSystem**)&render, SUBSYSTEM_TYPE::RENDER);
@@ -255,24 +256,18 @@ void RenderWidget::onRender()
 
 void RenderWidget::onUpdate(float dt)
 {
-	if (!pCore)
-		return; // engine not loaded
-
-	pCore->Update();
+	if (pCore)
+		pCore->Update();
 
 	ICamera *pCamera = nullptr;
 	pSceneManager->GetDefaultCamera(&pCamera);
-	if (!pCamera)
-		return; // no camera
+	if (pCamera)
+	{
 
 	// update manipulator
 	ManipulatorBase *m = editor->CurrentManipulator();
 	if (m)
-		m->update(pCamera, rect(), normalizedMousePos);
-
-	// update camera
-	if (!pCamera)
-		return; // no camera
+		m->update(pCamera, rect(), normalizedMousePos, leftMouseClick);
 
 	vec3 pos;
 	pCamera->GetPosition(&pos);
@@ -326,6 +321,9 @@ void RenderWidget::onUpdate(float dt)
 			dy = 0.0f;
 		}
 	}
+	}
+
+	leftMouseClick = 0;
 }
 
 void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTER::AABB& aabb)

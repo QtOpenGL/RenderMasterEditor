@@ -30,7 +30,7 @@ float axisWorldSize(uint h, float dist)
 	return (85.0f / h) * dist;
 }
 
-void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
+void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, int click)
 {
 	// screen
 	uint w = screen.width();
@@ -56,31 +56,33 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
 	float distToCenter = WorldDistance(camViewProj, selectionWorldTransform);
-	vec3 axisCenter = selectionWorldTransform.Column3(3);
-	vec3 V = (axisCenter - cameraPosition).Normalized();
+	vec3 center = selectionWorldTransform.Column3(3);
+	vec3 V = (center - cameraPosition).Normalized();
 
 
-	auto distance_to_axis = [&](const vec3& axis, AXIS type) -> float
+	auto distance_to_axis = [&](const vec3& axis, AXIS type, vec3& worldDeltaOut) -> float
 	{
 		vec3 VcrossAxis = V.Cross(axis).Normalized();
 		vec3 N = axis.Cross(VcrossAxis).Normalized();
-		Plane plane(N, axisCenter);
+		Plane plane(N, center);
 
 		Line3D R = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
 
-		vec3 I;
-		if (LineIntersectPlane(I, plane, R))
+		vec3 intersectionWorld;
+		if (LineIntersectPlane(intersectionWorld, plane, R))
 		{
 		   //qDebug() <<"intersection x:" << vec3ToString(i);
 
-		   vec2 i = NdcToScreen(WorldToNdc(I, camViewProj), w, h);
-		   vec2 A = NdcToScreen(WorldToNdc(axisCenter, camViewProj), w, h);
+		   vec2 I = NdcToScreen(WorldToNdc(intersectionWorld, camViewProj), w, h);
+		   vec2 A = NdcToScreen(WorldToNdc(center, camViewProj), w, h);
 		   vec4 axisEndpointLocal = vec4(AxesEndpoints[(int)type] * axisWorldSize(h, distToCenter));
 		   vec4 axisEndpointWorld = selectionWorldTransform * axisEndpointLocal;
 		   vec2 Bndc = WorldToNdc(axisEndpointWorld.Vec3(), camViewProj);
 		   vec2 B = NdcToScreen(Bndc, w, h);
 
-		   float dist = PointToSegmentDistance(A, B, i);
+		   float dist = PointToSegmentDistance(A, B, I);
+
+		   worldDeltaOut = intersectionWorld - center;
 
 		   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
 
@@ -97,12 +99,20 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 	for (int i = 0; i < 3; i++)
 	{
-		float dist = distance_to_axis(axes[i], (AXIS)i);
+		vec3 _worldDelta;
+		float dist = distance_to_axis(axes[i], (AXIS)i, _worldDelta);
 
 		if (dist < SelectDistance && dist < minDist)
 		{
 			minDist = dist;
 			moiseHoverAxis = (AXIS)i;
+
+			// calculate delta between center and click
+			if (click)
+			{
+				worldDelta = _worldDelta;
+				qDebug() << "delta = " << vec3ToString(worldDelta);
+			}
 		}
 	}
 }
