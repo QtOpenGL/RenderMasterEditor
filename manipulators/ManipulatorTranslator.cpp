@@ -30,6 +30,13 @@ float axisWorldSize(uint h, float dist)
 	return (85.0f / h) * dist;
 }
 
+float distToSelection(const mat4& ViewProj, const mat4& selection)
+{
+	vec4 view4 = ViewProj * vec4(selection.el_2D[0][3], selection.el_2D[1][3], selection.el_2D[2][3], 1.0f);
+	vec3 view(view4);
+	return view.Lenght();
+}
+
 void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRender *render, ICoreRender *coreRender, const vec2 &normalizedMousePos)
 {
 	// screen
@@ -55,23 +62,16 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 
 	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
-
-	vec4 view4 = camViewProj * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
-	vec3 view(view4);
-	float distToSelction = view.Lenght();
-
-	mat4 axisTransform = editor->GetSelectionTransform();
-	vec3 axisOrigin = axisTransform.Column3(3);
-
-	vec3 V = (axisOrigin - cameraPosition).Normalized();
+	float distToSel = distToSelection(camViewProj, selectionWorldTransform);
+	vec3 axisCenter = selectionWorldTransform.Column3(3);
+	vec3 V = (axisCenter - cameraPosition).Normalized();
 
 
 	auto distance_to_axis = [&](const vec3& axis, AXIS type) -> float
 	{
 		vec3 VcrossAxis = V.Cross(axis).Normalized();
 		vec3 N = axis.Cross(VcrossAxis).Normalized();
-		vec3 O = axisTransform.Column3(3);
-		Plane plane(N, O);
+		Plane plane(N, axisCenter);
 
 		Line3D R = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
 
@@ -81,9 +81,9 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 		   //qDebug() <<"intersection x:" << vec3ToString(i);
 
 		   vec2 i = NdcToScreen(WorldToNdc(I, camViewProj), w, h);
-		   vec2 A = NdcToScreen(WorldToNdc(axisOrigin, camViewProj), w, h);
-		   vec4 axisEndpointLocal = vec4(AxesEndpointDelta[(int)type] * axisWorldSize(h, distToSelction));
-		   vec4 axisEndpointWorld = axisTransform * axisEndpointLocal;
+		   vec2 A = NdcToScreen(WorldToNdc(axisCenter, camViewProj), w, h);
+		   vec4 axisEndpointLocal = vec4(AxesEndpointDelta[(int)type] * axisWorldSize(h, distToSel));
+		   vec4 axisEndpointWorld = selectionWorldTransform * axisEndpointLocal;
 		   vec2 Bndc = WorldToNdc(axisEndpointWorld.Vec3(), camViewProj);
 		   vec2 B = NdcToScreen(Bndc, w, h);
 
@@ -98,7 +98,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 	};
 
 
-	vec3 axes[3] = { axisTransform.Column3(0).Normalized(), axisTransform.Column3(1).Normalized(), axisTransform.Column3(2).Normalized() };
+	vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
 	moiseHoverAxis = AXIS::NONE;
 	float minDist = MaxDistance;
 
@@ -127,10 +127,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
-
-	vec4 view4 = camViewProj * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
-	vec3 view(view4);
-	float dist = view.Lenght();
+	float distToSel = distToSelection(camViewProj, selectionWorldTransform);
 
 	{
 		ShaderRequirement req;
@@ -147,14 +144,13 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		pCoreRender->SetDepthTest(0);
 
 		mat4 distanceScaleMat;
-		distanceScaleMat.el_2D[0][0] = axisWorldSize(h, dist);
-		distanceScaleMat.el_2D[1][1] = axisWorldSize(h, dist);
-		distanceScaleMat.el_2D[2][2] = axisWorldSize(h, dist);
+		distanceScaleMat.el_2D[0][0] = axisWorldSize(h, distToSel);
+		distanceScaleMat.el_2D[1][1] = axisWorldSize(h, distToSel);
+		distanceScaleMat.el_2D[2][2] = axisWorldSize(h, distToSel);
 
 		auto draw_axis = [&](AXIS type, const vec4& color) -> void
 		{
 			mat4 rotationMat(1.0f);
-
 			if (type == AXIS::Y)
 			{
 				rotationMat.el_2D[0][0] = 0.0f;
@@ -168,6 +164,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 				rotationMat.el_2D[2][0] = 1.0f;
 				rotationMat.el_2D[0][2] = 1.0f;
 			}
+
 			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * rotationMat;
 			shader->SetMat4Parameter("MVP", &MVP);
 			shader->SetVec4Parameter("main_color", &color);
