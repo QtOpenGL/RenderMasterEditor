@@ -82,9 +82,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	float distanceToY = 1000000.0;
 	float distanceToZ = 1000000.0;
 
-	vec3 axis = axisTransform.Column3(0).Normalized();
+	//vec3 axisX = axisTransform.Column3(0).Normalized();
 
-	auto distance_to_axis = [&](const vec3& axis) -> float
+	auto distance_to_axis = [&](const vec3& axis, const vec3& endPoint) -> float
 	{
 		vec3 tmp = V.Cross(axis).Normalized();
 		vec3 planeN = axis.Cross(tmp).Normalized();
@@ -102,21 +102,37 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		   vec2 iScreen = NdcToScreen(WorldToNdc(i, camVP), w, h);
 		   //qDebug() <<"Intersection in screen:" << vec2ToString(iScreen);
 
-		   vec2 p0Ndc = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
-		   vec2 p1Ndc = NdcToScreen(WorldToNdc((axisOrigin + vec3(1,0,0) * axisSize(h, dist)), camVP), w, h);
+		   vec2 p0Screen = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
+		   vec4 axisEndpointLocal = vec4(endPoint * axisSize(h, dist));
+		   vec4 axisEndpointWorld = axisTransform * axisEndpointLocal;
+		   vec2 p1Ndc = WorldToNdc(axisEndpointWorld.Vec3(), camVP);
+		   vec2 p1Screen = NdcToScreen(p1Ndc, w, h);
 
-		   return SegmentPointDistance(p0Ndc, p1Ndc, iScreen);
+		   float dist = SegmentPointDistance(p0Screen, p1Screen, iScreen);
 
-		   //qDebug() << "distance:" << distToX;
+		   qDebug() << "mouse ndc:" << vec2ToString(mousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
+
+		   return dist;
 		}
 
-		return 1000000.0;
+		return 1000000.0f;
 	};
 
-	float distToX = distance_to_axis(axis);
+	float minDisatnce = 100000.0f;
+	int axesIdx = -1;
+	vec3 axes[3] = { axisTransform.Column3(0).Normalized(), axisTransform.Column3(1).Normalized(), axisTransform.Column3(2).Normalized() };
+	vec3 axesEndpoints[3] = { vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) };
 
-	if (distToX < SelectDistance)
-		mouseNearX = 1;
+	for (int i = 0; i < 1; i++)
+	{
+		float dist = distance_to_axis(axes[i], axesEndpoints[i]);
+		if (dist < SelectDistance && dist < minDisatnce)
+		{
+			minDisatnce = dist;
+			axesIdx = i;
+		}
+	}
+
 
 	{
 		ShaderRequirement req;
@@ -166,14 +182,14 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			pCoreRender->Draw(_pAxesArrowMesh);
 		};
 
-		static const vec4 colorWhite = vec4(1,1,1,1);
+		static const vec4 colorSelection = vec4(1,0,1,1);
 		static const vec4 colorRed = vec4(1,0,0,1);
 		static const vec4 colorGreen = vec4(0,1,0,1);
 		static const vec4 colorBlue = vec4(0,0,1,1);
 
-		draw_axis(AXIS::X, mouseNearX ? colorWhite : colorRed);
-        draw_axis(AXIS::Y, colorGreen);
-        draw_axis(AXIS::Z, colorBlue);
+		draw_axis(AXIS::X, axesIdx == 0 ? colorSelection : colorRed);
+		draw_axis(AXIS::Y, axesIdx == 1 ? colorSelection : colorGreen);
+		draw_axis(AXIS::Z, axesIdx == 2 ? colorSelection : colorBlue);
 
         // debug
         {
