@@ -134,7 +134,6 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 
 	if (m)
 		m->render(pCamera, rect(), pRender, pCoreRender);
-
 }
 
 void RenderWidget::RenderWidget::drawGrid(const mat4 &VP)
@@ -243,7 +242,6 @@ void RenderWidget::onRender()
 					std::vector<IGameObject*> gos;
 					editor->ChangeSelection(gos);
 				}
-
 			}
 
 			depthIdTex->Release();
@@ -357,8 +355,7 @@ void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTE
 
 	focusingTargetPosition = worldCenter - view * distance;
 
-	qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);
-
+	//qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);
 }
 
 void RenderWidget::onEngineInited(ICore *pCoreIn)

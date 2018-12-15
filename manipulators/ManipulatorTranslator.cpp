@@ -9,6 +9,7 @@ extern EditorGlobal* editor;
 extern EngineGlobal* eng;
 
 const float SelectDistance = 8.0f;
+const float MaxDistance = 1000000.0f;
 
 ManipulatorTranslator::~ManipulatorTranslator()
 {
@@ -91,20 +92,21 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 		   return dist;
 		}
 
-		return 1000000.0f;
+		return MaxDistance;
 	};
 
-	float minDisatnce = 1000000.0f;
+
 	vec3 axes[3] = { axisTransform.Column3(0).Normalized(), axisTransform.Column3(1).Normalized(), axisTransform.Column3(2).Normalized() };
-	vec3 axesEndpoints[3] = { vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) };
+	vec3 axesEndpointDelta[3] = { vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1) };
 	moiseHoverAxis = AXIS::NONE;
 
 	for (int i = 0; i < 3; i++)
 	{
-		float dist = distance_to_axis(axes[i], axesEndpoints[i]);
-		if (dist < SelectDistance && dist < minDisatnce)
+		float dist = distance_to_axis(axes[i], axesEndpointDelta[i]);
+
+		if (dist < SelectDistance && dist < MaxDistance)
 		{
-			minDisatnce = dist;
+			MaxDistance = dist;
 			moiseHoverAxis = (AXIS)i;
 		}
 	}
