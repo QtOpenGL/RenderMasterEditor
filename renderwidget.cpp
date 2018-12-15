@@ -130,7 +130,7 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 	ManipulatorBase *m = editor->CurrentManipulator();
 
 	if (m)
-		m->render(pCamera, rect(), pRender, pCoreRender, normalizedMousePos);
+		m->render(pCamera, rect(), pRender, pCoreRender);
 
 }
 
@@ -191,9 +191,6 @@ void RenderWidget::onRender()
 		}
 
 		ManipulatorBase *manipulator = editor->CurrentManipulator();
-
-		if (manipulator)
-			qDebug() << "needCaptureId:" << needCaptureId << " manipulator->isIntersects(normalizedMousePos):" << manipulator->isIntersects(normalizedMousePos);
 
 		// picking. render id's
 		if ((!manipulator && needCaptureId) ||
@@ -264,7 +261,15 @@ void RenderWidget::onUpdate(float dt)
 
 	ICamera *pCamera = nullptr;
 	pSceneManager->GetDefaultCamera(&pCamera);
+	if (!pCamera)
+		return; // no camera
 
+	// update manipulator
+	ManipulatorBase *m = editor->CurrentManipulator();
+	if (m)
+		m->update(pCamera, rect(), pRender, pCoreRender, normalizedMousePos);
+
+	// update camera
 	if (!pCamera)
 		return; // no camera
 

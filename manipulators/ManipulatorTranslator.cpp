@@ -19,44 +19,28 @@ bool ManipulatorTranslator::isIntersects(const vec2& normalizedMousePos)
 	return moiseHoverAxis != AXIS::NONE;
 }
 
-void ManipulatorTranslator::beginDrag(const QPointF &mousePos)
-{
-
-}
-
-void ManipulatorTranslator::drag(const QPointF &mousePos)
-{
-
-}
-
-void ManipulatorTranslator::endDrag()
-{
-
-}
-
 float axisSize(uint h, float dist)
 {
 	return (85.0f / h) * dist;
 }
 
-void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& normalizedMousePos)
+void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRender *render, ICoreRender *coreRender, const vec2 &normalizedMousePos)
 {
 	// screen
-    uint w = screen.width();
-    uint h = screen.height();
-
+	uint w = screen.width();
+	uint h = screen.height();
 
 	// camera
-    mat4 camVP;
-    float aspect = (float)w / h;
-    pCamera->GetViewProjectionMatrix(&camVP, aspect);
+	mat4 camVP;
+	float aspect = (float)w / h;
+	pCamera->GetViewProjectionMatrix(&camVP, aspect);
 
-    mat4 camModelMatrix;
-    pCamera->GetModelMatrix(&camModelMatrix);
-    vec3 cameraPosition = camModelMatrix.Column3(3);
+	mat4 camModelMatrix;
+	pCamera->GetModelMatrix(&camModelMatrix);
+	vec3 cameraPosition = camModelMatrix.Column3(3);
 
-    mat4 camProjMat;
-    pCamera->GetProjectionMatrix(&camProjMat, aspect);
+	mat4 camProjMat;
+	pCamera->GetProjectionMatrix(&camProjMat, aspect);
 
 	float camFov;
 	pCamera->GetFovAngle(&camFov);
@@ -73,12 +57,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	vec3 axisOrigin = axisTransform.Column3(3);
 
 	vec3 V = (axisOrigin - cameraPosition).Normalized();
-
-	float distanceToX = 1000000.0;
-	float distanceToY = 1000000.0;
-	float distanceToZ = 1000000.0;
-
-	//vec3 axisX = axisTransform.Column3(0).Normalized();
 
 	auto distance_to_axis = [&](const vec3& axis, const vec3& endPoint) -> float
 	{
@@ -114,7 +92,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		return 1000000.0f;
 	};
 
-	float minDisatnce = 100000.0f;
+	float minDisatnce = 1000000.0f;
 	vec3 axes[3] = { axisTransform.Column3(0).Normalized(), axisTransform.Column3(1).Normalized(), axisTransform.Column3(2).Normalized() };
 	vec3 axesEndpoints[3] = { vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) };
 	moiseHoverAxis = AXIS::NONE;
@@ -129,6 +107,25 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		}
 	}
 
+}
+
+void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
+{
+	// screen
+    uint w = screen.width();
+    uint h = screen.height();
+
+	// camera
+	mat4 camVP;
+	float aspect = (float)w / h;
+	pCamera->GetViewProjectionMatrix(&camVP, aspect);
+
+	// selection
+	mat4 selectionWorldTransform = editor->GetSelectionTransform();
+
+	vec4 view4 = camVP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
+	vec3 view(view4);
+	float dist = view.Lenght();
 
 	{
 		ShaderRequirement req;
