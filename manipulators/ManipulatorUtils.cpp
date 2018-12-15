@@ -40,7 +40,7 @@ Line3D MouseToRay(const mat4& cameraModelMatrix, float fov, float aspect, const 
     vec3 origin = cameraModelMatrix.Column3(3);
 
     //qDebug() << "ray dir: " << vec3ToString(dir) << "proprortion: " << vec3ToString(vec3(origin.x / dir.x, origin.y / dir.y, origin.z / dir.z)) <<
-    qDebug() << "mousePos: " << mousePos.x << " " << mousePos.y;
+	//qDebug() << "mousePos: " << mousePos.x << " " << mousePos.y;
 
     return Line3D(dir, origin);
 }

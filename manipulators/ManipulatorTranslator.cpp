@@ -8,6 +8,8 @@ using namespace RENDER_MASTER;
 extern EditorGlobal* editor;
 extern EngineGlobal* eng;
 
+const float selectDistance = 8.0f;
+
 ManipulatorTranslator::~ManipulatorTranslator()
 {
 }
@@ -34,7 +36,7 @@ void ManipulatorTranslator::endDrag()
 
 float axisSize(uint h, float dist)
 {
-    return (80.0f / h) * dist;
+	return (90.0f / h) * dist;
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& mousePos)
@@ -53,6 +55,55 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
     mat4 camProjMat;
     pCamera->GetProjectionMatrix(&camProjMat, aspect);
 
+	float camFov;
+	pCamera->GetFovAngle(&camFov);
+
+	mat4 selectionWorldTransform = editor->GetSelectionTransform();
+
+	vec4 view4 = camVP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
+	vec3 view(view4);
+	float dist = view.Lenght();
+
+	mat4 axisTransform = editor->GetSelectionTransform();
+	vec3 axisOrigin = axisTransform.Column3(3);
+
+	vec3 axis = axisTransform.Column3(0).Normalized();
+	vec3 V1 = (axisOrigin - cameraPosition).Normalized();
+	vec3 tmp = V1.Cross(axis).Normalized();
+	vec3 N = axis.Cross(tmp).Normalized();
+
+	//draw_vector_debug(tmp, colorRed);
+	//draw_vector_debug(N, colorGreen);
+   // draw_vector_debug(V1, colorGreen);
+
+
+
+	vec3 origin = axisTransform.Column3(3);
+	Plane plane(N, origin);
+
+	Line3D r = MouseToRay(camModelMatrix, camFov, aspect, mousePos);
+
+	int xSelect = 0;
+
+	vec3 i;
+	if (LineIntersectPlane(i, plane, r))
+	{
+	   //qDebug() <<"intersection x:" << vec3ToString(i);
+
+	   vec2 iScreen = NdcToScreen(WorldToNdc(i, camVP), w, h);
+	   //qDebug() <<"Intersection in screen:" << vec2ToString(iScreen);
+
+	   vec2 p0Ndc = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
+	   vec2 p1Ndc = NdcToScreen(WorldToNdc((axisOrigin + vec3(1,0,0) * axisSize(h, dist)), camVP), w, h);
+
+	   float distToX = SegmentPointDistance(p0Ndc, p1Ndc, iScreen);
+
+		if (distToX < selectDistance)
+			xSelect = 1;
+
+	   qDebug() << "distance:" << distToX;
+	}
+
 	{
 		ShaderRequirement req;
 		req.attributes = INPUT_ATTRUBUTE::POSITION;
@@ -65,12 +116,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		shader->AddRef();
 
 		pCoreRender->SetShader(shader);
-
-		mat4 selectionWorldTransform = editor->GetSelectionTransform();
-
-        vec4 view4 = camVP * vec4(selectionWorldTransform.el_2D[0][3], selectionWorldTransform.el_2D[1][3], selectionWorldTransform.el_2D[2][3], 1.0f);
-		vec3 view(view4);
-		float dist = view.Lenght();
 
 		mat4 distanceScaleMat;
         distanceScaleMat.el_2D[0][0] = axisSize(h, dist);
@@ -112,7 +157,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		static const vec4 colorGreen = vec4(0,1,0,1);
 		static const vec4 colorBlue = vec4(0,0,1,1);
 
-        draw_axis(AXIS::X, colorRed);
+		draw_axis(AXIS::X, xSelect ? colorWhite : colorRed);
         draw_axis(AXIS::Y, colorGreen);
         draw_axis(AXIS::Z, colorBlue);
 
@@ -138,41 +183,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
                 pCoreRender->Draw(_pAxesArrowMesh);
             };
 
-            float camFov;
-            pCamera->GetFovAngle(&camFov);
-
-            mat4 axisTransform = editor->GetSelectionTransform();
-            vec3 axisOrigin = axisTransform.Column3(3);
-
-            vec3 axis = axisTransform.Column3(0).Normalized();
-            vec3 V1 = (axisOrigin - cameraPosition).Normalized();
-            vec3 tmp = V1.Cross(axis).Normalized();
-            vec3 N = axis.Cross(tmp).Normalized();
-
-            //draw_vector_debug(tmp, colorRed);
-            //draw_vector_debug(N, colorGreen);
-           // draw_vector_debug(V1, colorGreen);
-
-            vec3 origin = axisTransform.Column3(3);
-            Plane plane(N, origin);
-
-            Line3D r = MouseToRay(camModelMatrix, camFov, aspect, mousePos);
-
-            vec3 i;
-            if (LineIntersectPlane(i, plane, r))
-            {
-               //qDebug() <<"intersection x:" << vec3ToString(i);
-
-               vec2 iScreen = NdcToScreen(WorldToNdc(i, camVP), w, h);
-               qDebug() <<"Intersection in screen:" << vec2ToString(iScreen);
-
-               vec2 p0Ndc = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
-               vec2 p1Ndc = NdcToScreen(WorldToNdc((axisOrigin + vec3(1,0,0) * axisSize(h, dist)), camVP), w, h);
-
-               //float distToX = SegmentPointDistance(p0Ndc, p1Ndc, iNdc);
-
-               //qDebug() << "distance:" <<
-            }
 
 
             //_drawPlane(plane, pCamera, screen, pRender, pCoreRender);
