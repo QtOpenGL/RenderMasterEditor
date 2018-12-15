@@ -52,7 +52,7 @@ vec2 WorldToNdc(const vec3& pos, const mat4& ViewProj)
     return vec2(screenPos.x, screenPos.y);
 }
 
-float SegmentPointDistance(const vec2& p0, const vec2& p1, const vec2& point)
+float PointToSegmentDistance(const vec2& p0, const vec2& p1, const vec2& point)
 {
     vec2 direction = vec2(p1.x - p0.x, p1.y - p0.y);
     vec2 p00 = p0;

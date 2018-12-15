@@ -28,7 +28,7 @@ struct Line3D
 bool LineIntersectPlane(vec3& intersection, const Plane& plane, const Line3D& line);
 Line3D MouseToRay(const mat4& cameraModelMatrix, float fov, float aspect, const vec2& normalizedMousePos);
 vec2 WorldToNdc(const vec3& pos, const mat4& ViewProj);
-float SegmentPointDistance(const vec2& p0, const vec2& p1, const vec2& ndc);
+float PointToSegmentDistance(const vec2& p0, const vec2& p1, const vec2& ndc);
 vec2 NdcToScreen(const vec2& pos, uint w, uint h);
 
 #endif // MANIPULATORUTILS_H

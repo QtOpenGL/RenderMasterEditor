@@ -63,29 +63,26 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 
 	auto distance_to_axis = [&](const vec3& axis, const vec3& endPoint) -> float
 	{
-		vec3 tmp = V.Cross(axis).Normalized();
-		vec3 planeN = axis.Cross(tmp).Normalized();
+		vec3 VcrossAxis = V.Cross(axis).Normalized();
+		vec3 N = axis.Cross(VcrossAxis).Normalized();
+		vec3 O = axisTransform.Column3(3);
+		Plane plane(N, O);
 
-		vec3 origin = axisTransform.Column3(3);
-		Plane plane(planeN, origin);
+		Line3D R = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
 
-		Line3D r = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
-
-		vec3 i;
-		if (LineIntersectPlane(i, plane, r))
+		vec3 I;
+		if (LineIntersectPlane(I, plane, R))
 		{
 		   //qDebug() <<"intersection x:" << vec3ToString(i);
 
-		   vec2 iScreen = NdcToScreen(WorldToNdc(i, camVP), w, h);
-		   //qDebug() <<"Intersection in screen:" << vec2ToString(iScreen);
-
-		   vec2 p0Screen = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
+		   vec2 i = NdcToScreen(WorldToNdc(I, camVP), w, h);
+		   vec2 A = NdcToScreen(WorldToNdc(axisOrigin, camVP), w, h);
 		   vec4 axisEndpointLocal = vec4(endPoint * axisSize(h, dist));
 		   vec4 axisEndpointWorld = axisTransform * axisEndpointLocal;
-		   vec2 p1Ndc = WorldToNdc(axisEndpointWorld.Vec3(), camVP);
-		   vec2 p1Screen = NdcToScreen(p1Ndc, w, h);
+		   vec2 BNdc = WorldToNdc(axisEndpointWorld.Vec3(), camVP);
+		   vec2 B = NdcToScreen(BNdc, w, h);
 
-		   float dist = SegmentPointDistance(p0Screen, p1Screen, iScreen);
+		   float dist = PointToSegmentDistance(A, B, i);
 
 		   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
 
@@ -99,14 +96,15 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, IRende
 	vec3 axes[3] = { axisTransform.Column3(0).Normalized(), axisTransform.Column3(1).Normalized(), axisTransform.Column3(2).Normalized() };
 	vec3 axesEndpointDelta[3] = { vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1) };
 	moiseHoverAxis = AXIS::NONE;
+	float minDist = MaxDistance;
 
 	for (int i = 0; i < 3; i++)
 	{
 		float dist = distance_to_axis(axes[i], axesEndpointDelta[i]);
 
-		if (dist < SelectDistance && dist < MaxDistance)
+		if (dist < SelectDistance && dist < minDist)
 		{
-			MaxDistance = dist;
+			minDist = dist;
 			moiseHoverAxis = (AXIS)i;
 		}
 	}
