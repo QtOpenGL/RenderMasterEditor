@@ -14,9 +14,9 @@ ManipulatorTranslator::~ManipulatorTranslator()
 {
 }
 
-bool ManipulatorTranslator::isIntersects(const QPointF &mousePos)
+bool ManipulatorTranslator::isIntersects(const vec2& normalizedMousePos)
 {
-	return false;
+	return moiseHoverAxis != AXIS::NONE;
 }
 
 void ManipulatorTranslator::beginDrag(const QPointF &mousePos)
@@ -39,7 +39,7 @@ float axisSize(uint h, float dist)
 	return (90.0f / h) * dist;
 }
 
-void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& mousePos)
+void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& normalizedMousePos)
 {
 	// screen
     uint w = screen.width();
@@ -74,10 +74,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 	vec3 V = (axisOrigin - cameraPosition).Normalized();
 
-	int mouseNearX = 0;
-	int mouseNearY = 0;
-	int mouseNearZ = 0;
-
 	float distanceToX = 1000000.0;
 	float distanceToY = 1000000.0;
 	float distanceToZ = 1000000.0;
@@ -92,7 +88,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		vec3 origin = axisTransform.Column3(3);
 		Plane plane(planeN, origin);
 
-		Line3D r = MouseToRay(camModelMatrix, camFov, aspect, mousePos);
+		Line3D r = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
 
 		vec3 i;
 		if (LineIntersectPlane(i, plane, r))
@@ -110,7 +106,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 
 		   float dist = SegmentPointDistance(p0Screen, p1Screen, iScreen);
 
-		   qDebug() << "mouse ndc:" << vec2ToString(mousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
+		   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
 
 		   return dist;
 		}
@@ -119,17 +115,17 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	};
 
 	float minDisatnce = 100000.0f;
-	int axesIdx = -1;
 	vec3 axes[3] = { axisTransform.Column3(0).Normalized(), axisTransform.Column3(1).Normalized(), axisTransform.Column3(2).Normalized() };
 	vec3 axesEndpoints[3] = { vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) };
+	moiseHoverAxis = AXIS::NONE;
 
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		float dist = distance_to_axis(axes[i], axesEndpoints[i]);
 		if (dist < SelectDistance && dist < minDisatnce)
 		{
 			minDisatnce = dist;
-			axesIdx = i;
+			moiseHoverAxis = (AXIS)i;
 		}
 	}
 
@@ -187,9 +183,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		static const vec4 colorGreen = vec4(0,1,0,1);
 		static const vec4 colorBlue = vec4(0,0,1,1);
 
-		draw_axis(AXIS::X, axesIdx == 0 ? colorSelection : colorRed);
-		draw_axis(AXIS::Y, axesIdx == 1 ? colorSelection : colorGreen);
-		draw_axis(AXIS::Z, axesIdx == 2 ? colorSelection : colorBlue);
+		draw_axis(AXIS::X, (int)moiseHoverAxis == 0 ? colorSelection : colorRed);
+		draw_axis(AXIS::Y, (int)moiseHoverAxis == 1 ? colorSelection : colorGreen);
+		draw_axis(AXIS::Z, (int)moiseHoverAxis == 2 ? colorSelection : colorBlue);
 
         // debug
         {

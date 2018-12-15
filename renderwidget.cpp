@@ -59,7 +59,7 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 	if (event->button() == Qt::RightButton)
 	{
 		//qDebug() << "RenderWidget::mousePressEvent(QMouseEvent *event)";
-		rightMouse = 1;
+		rightMousePressed = 1;
 		lastMousePos = event->pos();
 	}
 
@@ -78,19 +78,21 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 	if (event->button() == Qt::RightButton)
 	{
 		//qDebug() << "RenderWidget::mouseReleaseEvent(QMouseEvent *event)";
-		rightMouse = 0;
+		rightMousePressed = 0;
 	}
 	QWidget::mouseReleaseEvent(event);
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    currentMouseX = event->pos().x();
-    currentMouseY = event->pos().y();
+	mousePosX = event->pos().x();
+	mousePosY = event->pos().y();
 
-    //qDebug() << currentMouseX;
+	int w = size().width();
+	int h = size().height();
+	normalizedMousePos = vec2((float)mousePosX / w, (float)(h - mousePosY) / h);
 
-	if (pCore && rightMouse /*&& event->button() == Qt::RightButton*/)
+	if (pCore && rightMousePressed)
 	{
 		dx = event->pos().x() - lastMousePos.x();
 		dy = event->pos().y() - lastMousePos.y();
@@ -127,16 +129,8 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 
 	ManipulatorBase *m = editor->CurrentManipulator();
 
-	if (!m) return;
-
-    int w = size().width();
-    int h = size().height();
-
-    vec2 mouse = vec2((float)currentMouseX / w, (float)(h - currentMouseY) / h);
-
-    //qDebug() << mouse.x << mouse.y;
-
-    m->render(pCamera, rect(), pRender, pCoreRender, mouse);
+	if (m)
+		m->render(pCamera, rect(), pRender, pCoreRender, normalizedMousePos);
 
 }
 
@@ -196,8 +190,14 @@ void RenderWidget::onRender()
 			pCoreRender->SwapBuffers();
 		}
 
+		ManipulatorBase *manipulator = editor->CurrentManipulator();
+
+		if (manipulator)
+			qDebug() << "needCaptureId:" << needCaptureId << " manipulator->isIntersects(normalizedMousePos):" << manipulator->isIntersects(normalizedMousePos);
+
 		// picking. render id's
-		if (needCaptureId)
+		if ((!manipulator && needCaptureId) ||
+			(needCaptureId && manipulator && !manipulator->isIntersects(normalizedMousePos)))
 		{
 			needCaptureId = 0;
 
@@ -307,7 +307,7 @@ void RenderWidget::onUpdate(float dt)
 
 		pCamera->SetPosition(&pos);
 
-		if (rightMouse)
+		if (rightMousePressed)
 		{
 			quat rot;
 			pCamera->GetRotation(&rot);

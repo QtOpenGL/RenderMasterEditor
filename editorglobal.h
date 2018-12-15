@@ -29,7 +29,7 @@ class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber, RE
 	int _someObejctSelected = 0;
 	int _numberSelectedObjects = 0;
 
-	std::unique_ptr<ManipulatorBase> _manipulator;
+	std::unique_ptr<ManipulatorBase> _manipulator = nullptr;
 	MANIPULATOR _manipulatorType = MANIPULATOR::SELECT;
 
 	API Call(OUT vec3 *pos) override;

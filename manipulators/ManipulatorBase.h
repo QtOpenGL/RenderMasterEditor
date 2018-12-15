@@ -23,7 +23,7 @@ public:
 	ManipulatorBase(RENDER_MASTER::ICore *pCore);
 	virtual ~ManipulatorBase(){ _free(); }
 
-	virtual bool isIntersects(const QPointF& mousePos) = 0;
+	virtual bool isIntersects(const vec2& normalizedMousePos) = 0;
 	virtual void beginDrag(const QPointF& mousePos) = 0;
 	virtual void drag(const QPointF& mousePos) = 0;
 	virtual void endDrag() = 0;
