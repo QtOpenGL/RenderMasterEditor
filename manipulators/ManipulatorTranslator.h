@@ -18,6 +18,7 @@ class ManipulatorTranslator : public ManipulatorBase
 
 	AXIS moiseHoverAxis = AXIS::NONE;
 	vec3 worldDelta;
+	vec2 lastMousePos;
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}

@@ -115,6 +115,19 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			}
 		}
 	}
+
+	if (!lastMousePos.Aproximately(normalizedMousePos))
+	{
+		lastMousePos = normalizedMousePos;
+
+
+
+//		vec3 pos;
+//		IGameObject *go = editor->GetSelectionObject();
+//		go->GetPosition(&pos);
+//		pos -= worldDelta;
+//		go->SetPosition(&pos);
+	}
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
