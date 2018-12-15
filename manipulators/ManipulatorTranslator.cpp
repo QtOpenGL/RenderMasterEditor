@@ -36,7 +36,7 @@ void ManipulatorTranslator::endDrag()
 
 float axisSize(uint h, float dist)
 {
-	return (90.0f / h) * dist;
+	return (85.0f / h) * dist;
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender, const vec2& normalizedMousePos)
@@ -178,7 +178,7 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			pCoreRender->Draw(_pAxesArrowMesh);
 		};
 
-		static const vec4 colorSelection = vec4(1,0,1,1);
+		static const vec4 colorSelection = vec4(1,1,0,1);
 		static const vec4 colorRed = vec4(1,0,0,1);
 		static const vec4 colorGreen = vec4(0,1,0,1);
 		static const vec4 colorBlue = vec4(0,0,1,1);
