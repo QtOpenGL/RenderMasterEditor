@@ -187,34 +187,6 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		draw_axis(AXIS::Y, (int)moiseHoverAxis == 1 ? colorSelection : colorGreen);
 		draw_axis(AXIS::Z, (int)moiseHoverAxis == 2 ? colorSelection : colorBlue);
 
-        // debug
-        {
-
-            auto draw_vector_debug = [&](const vec3& v, const vec4& color) -> void
-            {
-                vec3 vN = v.Normalized();
-                mat4 basis(0.0f);
-                basis.SetColumn3(0, vN);
-
-                //qDebug() << "draw_vector_debug N:" << vec3ToString(vN);
-
-                mat4 MVP = camVP * selectionWorldTransform * basis * distanceScaleMat;
-                shader->SetMat4Parameter("MVP", &MVP);
-
-                shader->SetVec4Parameter("main_color", &color);
-
-                shader->FlushParameters();
-
-                pCoreRender->Draw(_pAxesMesh);
-                pCoreRender->Draw(_pAxesArrowMesh);
-            };
-
-
-
-            //_drawPlane(plane, pCamera, screen, pRender, pCoreRender);
-
-        }
-
 		shader->Release();
 	}
 }
