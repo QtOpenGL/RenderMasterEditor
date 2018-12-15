@@ -197,7 +197,7 @@ void RenderWidget::onRender()
 
 		// picking. render id's
 		if ((!manipulator && needCaptureId) ||
-			(needCaptureId && manipulator && !manipulator->isIntersects(normalizedMousePos)))
+			(needCaptureId && manipulator && !manipulator->isMouseIntersects(normalizedMousePos)))
 		{
 			needCaptureId = 0;
 

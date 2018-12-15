@@ -23,7 +23,7 @@ public:
 	ManipulatorBase(RENDER_MASTER::ICore *pCore);
 	virtual ~ManipulatorBase(){ _free(); }
 
-	virtual bool isIntersects(const vec2& normalizedMousePos) = 0;
+	virtual bool isMouseIntersects(const vec2& normalizedMousePos) = 0;
 	virtual void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender, const vec2& normalizedMousePos) = 0;
 	virtual void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender) = 0;
 

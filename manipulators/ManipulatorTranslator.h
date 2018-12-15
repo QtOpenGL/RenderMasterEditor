@@ -24,7 +24,7 @@ public:
 
 	// IManipulator interface
 public:
-	bool isIntersects(const vec2& normalizedMousePos);
+	bool isMouseIntersects(const vec2& normalizedMousePos);
 	void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender, const vec2& normalizedMousePos);
 	void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender);
 };

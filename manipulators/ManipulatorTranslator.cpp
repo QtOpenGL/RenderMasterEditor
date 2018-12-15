@@ -14,7 +14,7 @@ ManipulatorTranslator::~ManipulatorTranslator()
 {
 }
 
-bool ManipulatorTranslator::isIntersects(const vec2& normalizedMousePos)
+bool ManipulatorTranslator::isMouseIntersects(const vec2& normalizedMousePos)
 {
 	return moiseHoverAxis != AXIS::NONE;
 }
