@@ -20,6 +20,7 @@ struct Line3D
 	vec3 origin;
 	vec3 direction;
 
+	Line3D() = default;
 	Line3D(const vec3& directionlIn, const vec3& originIn) :
 		origin(originIn), direction(directionlIn){}
 };

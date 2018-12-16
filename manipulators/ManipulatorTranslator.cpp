@@ -16,6 +16,11 @@ const vec4 ColorRed = vec4(1,0,0,1);
 const vec4 ColorGreen = vec4(0,1,0,1);
 const vec4 ColorBlue = vec4(0,0,1,1);
 
+float axisWorldSize(uint h, float dist)
+{
+	return (85.0f / h) * dist;
+}
+
 ManipulatorTranslator::~ManipulatorTranslator()
 {
 }
@@ -33,45 +38,39 @@ void ManipulatorTranslator::mouseButtonUp()
 {
 }
 
-float axisWorldSize(uint h, float dist)
-{
-	return (85.0f / h) * dist;
-}
-
 void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
 {
-	// screen
-	uint w = screen.width();
-	uint h = screen.height();
-
-
-	// camera
-	mat4 camViewProj;
-	float aspect = (float)w / h;
-	pCamera->GetViewProjectionMatrix(&camViewProj, aspect);
-
-	mat4 camModelMatrix;
-	pCamera->GetModelMatrix(&camModelMatrix);
-	vec3 cameraPosition = camModelMatrix.Column3(3);
-
-	mat4 camProjMat;
-	pCamera->GetProjectionMatrix(&camProjMat, aspect);
-
-	float camFov;
-	pCamera->GetFovAngle(&camFov);
-
-
-	// selection
-	mat4 selectionWorldTransform = editor->GetSelectionTransform();
-	float distToCenter = WorldDistance(camViewProj, selectionWorldTransform);
-	vec3 center = selectionWorldTransform.Column3(3);
-	vec3 V = (center - cameraPosition).Normalized();
-
-
-	auto distance_to_axis = [&](const vec3& axis, AXIS type, vec3& worldDeltaOut, vec3& worldOut) -> float
+	auto project_mouse_to_axis = [&](const vec3& axisWorldSpace, AXIS type, vec3& worldDeltaOut, vec3& worldOut, float& distance) -> void
 	{
-		vec3 VcrossAxis = V.Cross(axis).Normalized();
-		vec3 N = axis.Cross(VcrossAxis).Normalized();
+		// screen
+		uint w = screen.width();
+		uint h = screen.height();
+
+
+		// camera
+		mat4 camViewProj;
+		float aspect = (float)w / h;
+		pCamera->GetViewProjectionMatrix(&camViewProj, aspect);
+
+		mat4 camModelMatrix;
+		pCamera->GetModelMatrix(&camModelMatrix);
+		vec3 cameraPosition = camModelMatrix.Column3(3);
+
+		mat4 camProjMat;
+		pCamera->GetProjectionMatrix(&camProjMat, aspect);
+
+		float camFov;
+		pCamera->GetFovAngle(&camFov);
+
+
+		// selection
+		mat4 selectionWorldTransform = editor->GetSelectionTransform();
+		float distToCenter = WorldDistance(camViewProj, selectionWorldTransform);
+		vec3 center = selectionWorldTransform.Column3(3);
+		vec3 V = (center - cameraPosition).Normalized();
+
+		vec3 VcrossAxis = V.Cross(axisWorldSpace).Normalized();
+		vec3 N = axisWorldSpace.Cross(VcrossAxis).Normalized();
 		Plane plane(N, center);
 
 		Line3D R = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
@@ -88,20 +87,17 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 		   vec2 Bndc = WorldToNdc(axisEndpointWorld.Vec3(), camViewProj);
 		   vec2 B = NdcToScreen(Bndc, w, h);
 
-		   float dist = PointToSegmentDistance(A, B, I);
-
+		   distance = PointToSegmentDistance(A, B, I);
 		   worldDeltaOut = intersectionWorld - center;
 		   worldOut = intersectionWorld;
-
+		   return;
 		   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
-
-		   return dist;
 		}
 
-		return MaxDistance;
+		distance = MaxDistance;
 	};
 
-
+	mat4 selectionWorldTransform = editor->GetSelectionTransform();
 	vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
 	moiseHoverAxis = AXIS::NONE;
 	float minDist = MaxDistance;
@@ -111,20 +107,14 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	for (int i = 0; i < 3; i++)
 	{
 		vec3 _worldDelta;
-		float dist = distance_to_axis(axes[i], (AXIS)i, _worldDelta, worldIntersection);
+		float dist;
+		project_mouse_to_axis(axes[i], (AXIS)i, _worldDelta, worldIntersection, dist);
 
 		if (dist < SelectDistance && dist < minDist)
 		{
 			intersect = true;
 			minDist = dist;
 			moiseHoverAxis = (AXIS)i;
-
-			// calculate delta between center and click
-			//if (click)
-			//{
-			//	worldDelta = _worldDelta;
-			//	qDebug() << "delta = " << vec3ToString(worldDelta);
-			//}
 		}
 	}
 

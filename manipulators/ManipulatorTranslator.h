@@ -17,8 +17,16 @@ class ManipulatorTranslator : public ManipulatorBase
 	Q_OBJECT
 
 	AXIS moiseHoverAxis = AXIS::NONE;
+	int isMoving = 0;
+
+	// not moving
 	vec3 worldDelta;
+
+	// moving
 	vec2 lastMousePos;
+	AXIS axisMoving = AXIS::NONE;
+	Line3D lineAlongMoving;
+
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}
