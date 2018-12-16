@@ -16,17 +16,19 @@ class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
 
-	AXIS moiseHoverAxis = AXIS::NONE;
+	AXIS mouseHoverAxis = AXIS::NONE;
+	vec3 delta;
 	int isMoving = 0;
 
 	// not moving
 	vec3 worldDelta;
 
 	// moving
-	vec2 lastMousePos;
 	AXIS axisMoving = AXIS::NONE;
 	Line3D lineAlongMoving;
+	vec2 lastNormalizedMousePos;
 
+	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS type, vec3& worldDeltaOut, vec3& worldOut, float& distance);
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}
