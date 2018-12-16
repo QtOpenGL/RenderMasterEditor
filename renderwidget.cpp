@@ -81,6 +81,12 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 		//qDebug() << "RenderWidget::mouseReleaseEvent(QMouseEvent *event)";
 		rightMousePressed = 0;
 	}
+	if (event->button() == Qt::LeftButton)
+	{
+		ManipulatorBase *manipulator = editor->CurrentManipulator();
+		if (manipulator)
+			manipulator->mouseButtonUp();
+	}
 	QWidget::mouseReleaseEvent(event);
 }
 
@@ -98,7 +104,6 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 		dx = event->pos().x() - lastMousePos.x();
 		dy = event->pos().y() - lastMousePos.y();
 		lastMousePos = event->pos();
-
 	}
 
 	leftMousePressed = 0;
@@ -267,7 +272,12 @@ void RenderWidget::onUpdate(float dt)
 	// update manipulator
 	ManipulatorBase *m = editor->CurrentManipulator();
 	if (m)
-		m->update(pCamera, rect(), normalizedMousePos, leftMouseClick);
+	{
+		if (leftMouseClick)
+			m->mouseButtonDown(pCamera, rect(), normalizedMousePos);
+		else
+			m->update(pCamera, rect(), normalizedMousePos);
+	}
 
 	vec3 pos;
 	pCamera->GetPosition(&pos);

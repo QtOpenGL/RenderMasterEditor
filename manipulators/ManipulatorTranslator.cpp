@@ -25,12 +25,20 @@ bool ManipulatorTranslator::isMouseIntersects(const vec2& normalizedMousePos)
 	return moiseHoverAxis != AXIS::NONE;
 }
 
+void ManipulatorTranslator::mouseButtonDown(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
+{
+}
+
+void ManipulatorTranslator::mouseButtonUp()
+{
+}
+
 float axisWorldSize(uint h, float dist)
 {
 	return (85.0f / h) * dist;
 }
 
-void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, int click)
+void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
 {
 	// screen
 	uint w = screen.width();
@@ -60,7 +68,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	vec3 V = (center - cameraPosition).Normalized();
 
 
-	auto distance_to_axis = [&](const vec3& axis, AXIS type, vec3& worldDeltaOut) -> float
+	auto distance_to_axis = [&](const vec3& axis, AXIS type, vec3& worldDeltaOut, vec3& worldOut) -> float
 	{
 		vec3 VcrossAxis = V.Cross(axis).Normalized();
 		vec3 N = axis.Cross(VcrossAxis).Normalized();
@@ -83,6 +91,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 		   float dist = PointToSegmentDistance(A, B, I);
 
 		   worldDeltaOut = intersectionWorld - center;
+		   worldOut = intersectionWorld;
 
 		   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
 
@@ -96,23 +105,26 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
 	moiseHoverAxis = AXIS::NONE;
 	float minDist = MaxDistance;
+	vec3 worldIntersection;
+	bool intersect = false;
 
 	for (int i = 0; i < 3; i++)
 	{
 		vec3 _worldDelta;
-		float dist = distance_to_axis(axes[i], (AXIS)i, _worldDelta);
+		float dist = distance_to_axis(axes[i], (AXIS)i, _worldDelta, worldIntersection);
 
 		if (dist < SelectDistance && dist < minDist)
 		{
+			intersect = true;
 			minDist = dist;
 			moiseHoverAxis = (AXIS)i;
 
 			// calculate delta between center and click
-			if (click)
-			{
-				worldDelta = _worldDelta;
-				qDebug() << "delta = " << vec3ToString(worldDelta);
-			}
+			//if (click)
+			//{
+			//	worldDelta = _worldDelta;
+			//	qDebug() << "delta = " << vec3ToString(worldDelta);
+			//}
 		}
 	}
 
@@ -120,7 +132,12 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	{
 		lastMousePos = normalizedMousePos;
 
-
+		//if (intersect)
+		//{
+		//	IGameObject *go = editor->GetSelectionObject();
+		//	vec3 pos = worldIntersection - worldDelta;
+		//	go->SetPosition(&pos);
+		//}
 
 //		vec3 pos;
 //		IGameObject *go = editor->GetSelectionObject();

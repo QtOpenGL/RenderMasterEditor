@@ -27,7 +27,9 @@ public:
 	// IManipulator interface
 public:
 	bool isMouseIntersects(const vec2& normalizedMousePos) override;
-	void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, const vec2& normalizedMousePos, int click) override;
+	void mouseButtonDown(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos) override;
+	void mouseButtonUp() override;
+	void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, const vec2& normalizedMousePos) override;
 	void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender) override;
 };
 

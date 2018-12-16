@@ -24,7 +24,9 @@ public:
 	virtual ~ManipulatorBase(){ _free(); }
 
 	virtual bool isMouseIntersects(const vec2& normalizedMousePos) = 0;
-	virtual void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, const vec2& normalizedMousePos, int click) = 0;
+	virtual void mouseButtonDown(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos) = 0;
+	virtual void mouseButtonUp() = 0;
+	virtual void update(RENDER_MASTER::ICamera *pCamera, const QRect& screen, const vec2& normalizedMousePos) = 0;
 	virtual void render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *render, RENDER_MASTER::ICoreRender *coreRender) = 0;
 
 private slots:
