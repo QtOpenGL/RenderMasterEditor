@@ -68,3 +68,10 @@ float WorldDistance(const mat4& ViewProj, const mat4& worldTransform)
 	vec3 view(view4);
 	return view.Lenght();
 }
+
+vec3 Line3D::projectPoint(vec3 &worldPos)
+{
+	vec3 AP = worldPos - origin;
+	vec3 AB = direction;
+	return origin + direction * AP.Dot(AB);
+}

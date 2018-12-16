@@ -21,7 +21,7 @@ float axisWorldSize(uint h, float dist)
 	return (85.0f / h) * dist;
 }
 
-void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3 &axisWorldSpace, AXIS type, vec3 &worldDeltaOut, vec3 &worldOut, float &distance)
+void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3 &axisWorldSpace, AXIS type, vec3 &worldOut, float &distance)
 {
 	// screen
 	uint w = screen.width();
@@ -67,7 +67,6 @@ void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const 
 	   vec2 B = NdcToScreen(Bndc, w, h);
 
 	   distance = PointToSegmentDistance(A, B, I);
-	   worldDeltaOut = intersectionWorld - center;
 	   worldOut = intersectionWorld;
 	   return;
 	   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
@@ -113,13 +112,14 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			vec3 axesDirWorld = lineAlongMoving.direction;
 
 			vec3 intersectionWorld;
-			vec3 intersectionDeltaToCenter;
 			float intersectionDistance;
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesDirWorld, mouseHoverAxis, intersectionDeltaToCenter, intersectionWorld, intersectionDistance);
+			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesDirWorld, mouseHoverAxis, intersectionWorld, intersectionDistance);
 
 			if (intersectionDistance < MaxDistance)
 			{
-				vec3 pos = intersectionWorld - delta;
+				vec3 projectedToLinePoint = lineAlongMoving.projectPoint(intersectionWorld);
+
+				vec3 pos = projectedToLinePoint - delta;
 				IGameObject *g = editor->GetSelectionObject();
 				g->SetPosition(&pos);
 			}
@@ -127,7 +127,10 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 	} else
 	{
+		lastNormalizedMousePos = normalizedMousePos;
+
 		mat4 selectionWorldTransform = editor->GetSelectionTransform();
+		vec3 center = selectionWorldTransform.Column3(3);
 		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
 		mouseHoverAxis = AXIS::NONE;
 		float minDist = MaxDistance;
@@ -137,13 +140,16 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			vec3 intersectionWorld;
 			vec3 intersectionDeltaToCenter;
 			float intersectionDistance;
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axes[i], (AXIS)i, intersectionDeltaToCenter, intersectionWorld, intersectionDistance);
+			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axes[i], (AXIS)i, intersectionWorld, intersectionDistance);
 
 			if (intersectionDistance < SelectDistance && intersectionDistance < minDist)
 			{
 				minDist = intersectionDistance;
 				mouseHoverAxis = (AXIS)i;
-				delta = intersectionDeltaToCenter;
+
+				Line3D axis3d = Line3D(axes[i], center);
+				vec3 projectedToLinePoint = axis3d.projectPoint(intersectionWorld);
+				delta = projectedToLinePoint - center;
 			}
 		}
 	}

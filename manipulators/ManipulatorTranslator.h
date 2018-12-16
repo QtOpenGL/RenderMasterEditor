@@ -28,7 +28,7 @@ class ManipulatorTranslator : public ManipulatorBase
 	Line3D lineAlongMoving;
 	vec2 lastNormalizedMousePos;
 
-	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS type, vec3& worldDeltaOut, vec3& worldOut, float& distance);
+	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS type, vec3& worldOut, float& distance);
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}

@@ -23,6 +23,8 @@ struct Line3D
 	Line3D() = default;
 	Line3D(const vec3& directionlIn, const vec3& originIn) :
 		origin(originIn), direction(directionlIn){}
+
+	vec3 projectPoint(vec3 &worldPos);
 };
 
 
