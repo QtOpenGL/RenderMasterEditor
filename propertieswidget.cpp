@@ -142,7 +142,7 @@ void PropertiesWidget::onSceneTreeInited(SceneTreeWidget *sceneTree)
 
 void PropertiesWidget::onSelectionChanged(const std::vector<IGameObject*>& selectedGameObjects)
 {
-	qDebug() << "PropertiesWidget::onSelectionChanged " << selectedGameObjects.size();
+	//qDebug() << "PropertiesWidget::onSelectionChanged " << selectedGameObjects.size();
 	if (!editor->IsSomeObjectSelected() || editor->GetNumberSelectedObjects() > 1)
 		SetGameObject(nullptr);
 	else

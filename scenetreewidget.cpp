@@ -395,7 +395,7 @@ QModelIndex iterate(const QModelIndex & index, const QAbstractItemModel * model,
 
 void SceneTreeWidget::onSelectionChangedFromEditor(const std::vector<IGameObject *>& selectedGameObjects)
 {
-	qDebug() << "SceneTreeWidget::onSelectionChangedFromEditor " << selectedGameObjects.size();
+	//qDebug() << "SceneTreeWidget::onSelectionChangedFromEditor " << selectedGameObjects.size();
 
 	auto *selectionModel = ui->treeView->selectionModel();
 
@@ -418,7 +418,7 @@ void SceneTreeWidget::_selectionChangedFromClick(const QItemSelection &selected,
 {
 	if (selected.indexes().size())
 	{
-		qDebug() << "SceneTreeWidget::_selectionChangedFromClick(): selected" << selected.size() << "deselected" << deselected.size();
+		//qDebug() << "SceneTreeWidget::_selectionChangedFromClick(): selected" << selected.size() << "deselected" << deselected.size();
 
 		const QModelIndex& index = selected.indexes().at(0);
 		if (index.isValid())

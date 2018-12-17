@@ -19,6 +19,8 @@ RenderWidget::RenderWidget(QWidget *parent) :
 {
 	ui->setupUi(this);
 
+    setMouseTracking(true);
+
 	setAttribute(Qt::WA_NoBackground);
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -57,14 +59,15 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 	if (event->button() == Qt::RightButton)
 	{
 		//qDebug() << "RenderWidget::mousePressEvent(QMouseEvent *event)";
-		rightMouse = 1;
+		rightMousePressed = 1;
 		lastMousePos = event->pos();
 	}
 
 	if (event->button() == Qt::LeftButton)
 	{
 		//qDebug() << "RenderWidget::mouseMoveEvent(QMouseEvent *event) (" << event->pos().x()<< event->pos().y() << ")";
-		needCaptureId = 1;
+		leftMousePressed = 1;
+		leftMouseClick = 1;
 		captureX = uint(event->pos().x());
 		captureY = uint(event->pos().y());
 	}
@@ -76,20 +79,35 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 	if (event->button() == Qt::RightButton)
 	{
 		//qDebug() << "RenderWidget::mouseReleaseEvent(QMouseEvent *event)";
-		rightMouse = 0;
+		rightMousePressed = 0;
+	}
+	if (event->button() == Qt::LeftButton)
+	{
+		ManipulatorBase *manipulator = editor->CurrentManipulator();
+		if (manipulator)
+			manipulator->mouseButtonUp();
 	}
 	QWidget::mouseReleaseEvent(event);
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	if (pCore && rightMouse /*&& event->button() == Qt::RightButton*/)
+	mousePosX = event->pos().x();
+	mousePosY = event->pos().y();
+
+	int w = size().width();
+	int h = size().height();
+	normalizedMousePos = vec2((float)mousePosX / w, (float)(h - mousePosY) / h);
+
+	if (pCore && rightMousePressed)
 	{
 		dx = event->pos().x() - lastMousePos.x();
 		dy = event->pos().y() - lastMousePos.y();
 		lastMousePos = event->pos();
-
 	}
+
+	leftMousePressed = 0;
+
 	QWidget::mouseMoveEvent(event);
 }
 
@@ -118,12 +136,10 @@ void RenderWidget::drawManipulator(ICamera *pCamera)
 	if (!editor->IsSomeObjectSelected())
 		return;
 
-	IManipulator *m = editor->CurrentManipulator();
+	ManipulatorBase *m = editor->CurrentManipulator();
 
-	if (!m) return;
-
-	m->render(pCamera, rect(), pRender, pCoreRender);
-
+	if (m)
+		m->render(pCamera, rect(), pRender, pCoreRender);
 }
 
 void RenderWidget::RenderWidget::drawGrid(const mat4 &VP)
@@ -182,10 +198,13 @@ void RenderWidget::onRender()
 			pCoreRender->SwapBuffers();
 		}
 
+		ManipulatorBase *manipulator = editor->CurrentManipulator();
+
 		// picking. render id's
-		if (needCaptureId)
+		if ((!manipulator && leftMousePressed) ||
+			(leftMousePressed && manipulator && !manipulator->isMouseIntersects(normalizedMousePos)))
 		{
-			needCaptureId = 0;
+			leftMousePressed = 0;
 
 			IRender *render;
 			pCore->GetSubSystem((ISubSystem**)&render, SUBSYSTEM_TYPE::RENDER);
@@ -229,7 +248,6 @@ void RenderWidget::onRender()
 					std::vector<IGameObject*> gos;
 					editor->ChangeSelection(gos);
 				}
-
 			}
 
 			depthIdTex->Release();
@@ -243,16 +261,23 @@ void RenderWidget::onRender()
 
 void RenderWidget::onUpdate(float dt)
 {
-	if (!pCore)
-		return; // engine not loaded
-
-	pCore->Update();
+	if (pCore)
+		pCore->Update();
 
 	ICamera *pCamera = nullptr;
 	pSceneManager->GetDefaultCamera(&pCamera);
+	if (pCamera)
+	{
 
-	if (!pCamera)
-		return; // no camera
+	// update manipulator
+	ManipulatorBase *m = editor->CurrentManipulator();
+	if (m)
+	{
+		if (leftMouseClick)
+			m->mouseButtonDown(pCamera, rect(), normalizedMousePos);
+		else
+			m->update(pCamera, rect(), normalizedMousePos);
+	}
 
 	vec3 pos;
 	pCamera->GetPosition(&pos);
@@ -293,7 +318,7 @@ void RenderWidget::onUpdate(float dt)
 
 		pCamera->SetPosition(&pos);
 
-		if (rightMouse)
+		if (rightMousePressed)
 		{
 			quat rot;
 			pCamera->GetRotation(&rot);
@@ -306,6 +331,9 @@ void RenderWidget::onUpdate(float dt)
 			dy = 0.0f;
 		}
 	}
+	}
+
+	leftMouseClick = 0;
 }
 
 void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTER::AABB& aabb)
@@ -329,14 +357,13 @@ void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTE
 	pCamera->GetFovAngle(&fovDegs);
 	float fovRads = fovDegs * DEGTORAD;
 
-	float objectHalfSize = max(max(abs(aabb.maxX - aabb.minX), abs(aabb.maxY - aabb.minY)), abs(aabb.maxZ - aabb.minZ));
+    float objectHalfSize = std::max(std::max(abs(aabb.maxX - aabb.minX), abs(aabb.maxY - aabb.minY)), abs(aabb.maxZ - aabb.minZ));
 
 	float distance = objectHalfSize / tan(fovRads * 0.5f);
 
 	focusingTargetPosition = worldCenter - view * distance;
 
-	qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);
-
+	//qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);
 }
 
 void RenderWidget::onEngineInited(ICore *pCoreIn)

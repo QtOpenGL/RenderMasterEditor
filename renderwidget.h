@@ -25,12 +25,16 @@ class RenderWidget : public QWidget
 	RENDER_MASTER::ISceneManager *pSceneManager{nullptr};
 	RENDER_MASTER::IResourceManager *pResMan{nullptr};
 
-	int rightMouse{};
+	int rightMousePressed{};
     QPoint lastMousePos;
     float dx{}, dy{};
 
-	int needCaptureId = 0;
+	int leftMousePressed = 0;
+	int leftMouseClick = 0;
 	uint captureX = 0, captureY = 0;
+
+	uint mousePosX = 0, mousePosY = 0;
+	vec2 normalizedMousePos;
 
     int key_w{};
     int key_s{};

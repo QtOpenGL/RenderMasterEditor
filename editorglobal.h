@@ -5,7 +5,7 @@
 
 #include "propertieswidget.h"
 #include "scenetreewidget.h"
-#include "manipulators/IManipulator.h"
+#include "manipulators/ManipulatorBase.h"
 
 #include <vector>
 #include <memory>
@@ -29,7 +29,7 @@ class EditorGlobal : public QWidget, RENDER_MASTER::IPositionEventSubscriber, RE
 	int _someObejctSelected = 0;
 	int _numberSelectedObjects = 0;
 
-	std::unique_ptr<IManipulator> _manipulator;
+	std::unique_ptr<ManipulatorBase> _manipulator = nullptr;
 	MANIPULATOR _manipulatorType = MANIPULATOR::SELECT;
 
 	API Call(OUT vec3 *pos) override;
@@ -46,7 +46,7 @@ public:
 
 	// Objects Selection
 	//
-	mat4 GetSelectionCeneter() { return _selectionCenterWorldTransform; }
+	mat4 GetSelectionTransform() { return _selectionCenterWorldTransform; }
 	IGameObject* GetSelectionObject() { return _selectionGameObject; }
 	int IsSomeObjectSelected() { return _someObejctSelected; }
 	int GetNumberSelectedObjects() { return _numberSelectedObjects; }
@@ -59,7 +59,7 @@ public:
 	// Manipulators
 	//
 	void ToggleManipulator(MANIPULATOR manipulator);
-	IManipulator *CurrentManipulator() { return _manipulator.get(); }
+	ManipulatorBase *CurrentManipulator() { return _manipulator.get(); }
 
 signals:
 

@@ -39,8 +39,9 @@ SOURCES += main.cpp\
     editorglobal.cpp \
     about.cpp \
     manipulators/ManipulatorTranslator.cpp \
-    manipulators/IManipulator.cpp \
-    manipulators/ManipulatorUtils.cpp
+    manipulators/ManipulatorUtils.cpp \
+    manipulators/ManipulatorBase.cpp \
+    common.cpp
 
 HEADERS  += mainwindow.h \
     dialog.h \
@@ -57,8 +58,8 @@ HEADERS  += mainwindow.h \
     about.h \
     common.h \
     manipulators/ManipulatorTranslator.h \
-    manipulators/IManipulator.h \
-    manipulators/ManipulatorUtils.h
+    manipulators/ManipulatorUtils.h \
+    manipulators/ManipulatorBase.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
