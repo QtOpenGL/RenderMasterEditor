@@ -103,6 +103,12 @@ void ManipulatorTranslator::mouseButtonUp()
 
 void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
 {
+	if (!editor->IsSomeObjectSelected())
+	{
+		isMoving = 0;
+		return;
+	}
+
 	if (isMoving)
 	{
 		if (!lastNormalizedMousePos.Aproximately(normalizedMousePos))
@@ -127,8 +133,6 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 	} else
 	{
-		lastNormalizedMousePos = normalizedMousePos;
-
 		mat4 selectionWorldTransform = editor->GetSelectionTransform();
 		vec3 center = selectionWorldTransform.Column3(3);
 		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
