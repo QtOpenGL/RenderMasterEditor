@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QAbstractItemModel>
 #include <QItemSelection>
-#include <memory.h>
+#include <memory>
 
 using RENDER_MASTER::IGameObject;
 
