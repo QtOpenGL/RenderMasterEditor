@@ -49,56 +49,19 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menuCreate">
-    <property name="title">
-     <string>Create</string>
-    </property>
-    <addaction name="actionCreateGameObject"/>
-   </widget>
-   <widget class="QMenu" name="menuWindows">
-    <property name="title">
-     <string>Windows</string>
-    </property>
-    <widget class="QMenu" name="menuLayouts">
-     <property name="title">
-      <string>Layouts</string>
-     </property>
-     <addaction name="actionScene_edit"/>
-     <addaction name="actionProfessional"/>
-     <addaction name="actionShowreel"/>
-    </widget>
-    <addaction name="actionGame_Viewport"/>
-    <addaction name="actionScene_Viewport"/>
-    <addaction name="actionScene"/>
-    <addaction name="actionProperties"/>
-    <addaction name="actionConsole"/>
-    <addaction name="actionAssets"/>
-    <addaction name="separator"/>
-    <addaction name="menuLayouts"/>
-   </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionHelp"/>
-    <addaction name="separator"/>
     <addaction name="actionAbout_Render_Master"/>
    </widget>
-   <widget class="QMenu" name="menuBuild">
-    <property name="title">
-     <string>Build</string>
-    </property>
-    <addaction name="actionBuild_Standalone"/>
-    <addaction name="actionRun_Standalone"/>
-    <addaction name="actionBuild_And_Run_Standalone"/>
-   </widget>
    <addaction name="menuNew_scene"/>
-   <addaction name="menuCreate"/>
-   <addaction name="menuBuild"/>
-   <addaction name="menuWindows"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
      <horstretch>0</horstretch>
@@ -126,6 +89,9 @@
    <addaction name="actionManipulatorScale"/>
   </widget>
   <action name="actionNew_scene">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>New Scene...</string>
    </property>
@@ -134,6 +100,9 @@
    </property>
   </action>
   <action name="actionOpen_scene">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Open Scene...</string>
    </property>
@@ -142,6 +111,9 @@
    </property>
   </action>
   <action name="actionSave_scene">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save Scene</string>
    </property>
@@ -155,6 +127,9 @@
    </property>
   </action>
   <action name="actionGame_Viewport">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Game Viewport</string>
    </property>
@@ -215,30 +190,9 @@
     <string>Project Settings</string>
    </property>
   </action>
-  <action name="actionBuild_And_Run_Standalone">
-   <property name="text">
-    <string>Build And Run</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+B</string>
-   </property>
-  </action>
-  <action name="actionRun_Standalone">
-   <property name="text">
-    <string>Run </string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+B</string>
-   </property>
-  </action>
   <action name="actionScene_edit">
    <property name="text">
     <string>Game Designer</string>
-   </property>
-  </action>
-  <action name="actionProfessional">
-   <property name="text">
-    <string>Programmer</string>
    </property>
   </action>
   <action name="actionShowreel">
@@ -249,6 +203,9 @@
   <action name="actionManipulatorScale">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="myresources.qrc">
@@ -274,6 +231,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="myresources.qrc">
      <normaloff>:/icons/manipulator_rotate.png</normaloff>:/icons/manipulator_rotate.png</iconset>
@@ -283,11 +243,17 @@
    </property>
   </action>
   <action name="actionScene_Reload">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Scene Reload</string>
    </property>
   </action>
   <action name="actionLoad_Scene">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Load Scene</string>
    </property>
@@ -296,6 +262,9 @@
    </property>
   </action>
   <action name="actionClose_Scene">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Close Scene</string>
    </property>
