@@ -4,15 +4,15 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 greaterThan(QT_MAJOR_VERSION, 4): DEFINES += ADS_NAMESPACE_ENABLED
 
-TARGET = untitled1
+TARGET = RenderMasterEditor
 TEMPLATE = app
-
 CONFIG += static
+RC_FILE = resources.rc
 
 release:DESTDIR = release
 release:OBJECTS_DIR = release/.tmp
