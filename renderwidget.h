@@ -19,11 +19,11 @@ class RenderWidget : public QWidget
 
     HWND h;
 
-	RENDER_MASTER::ICore *pCore = nullptr;
-	RENDER_MASTER::ICoreRender *pCoreRender = nullptr;
-	RENDER_MASTER::IRender *pRender = nullptr;
-	RENDER_MASTER::ISceneManager *pSceneManager = nullptr;
-	RENDER_MASTER::IResourceManager *pResMan = nullptr;
+	ICore *pCore = nullptr;
+	ICoreRender *pCoreRender = nullptr;
+	IRender *pRender = nullptr;
+	ISceneManager *pSceneManager = nullptr;
+	IResourceManager *pResMan = nullptr;
 
 	int rightMousePressed = 0;
 	int leftMousePressed = 0;
@@ -31,20 +31,21 @@ class RenderWidget : public QWidget
 
 	QPoint mousePos;
 	QPoint oldMousePos;
-	float dx = 0.0f, dy = 0.0f;
+	QPoint deltaMousePos;
 	vec2 normalizedMousePos;
 
-	int key_w = 0;
-	int key_s = 0;
-	int key_a = 0;
-	int key_d = 0;
-	int key_q = 0;
-	int key_e = 0;
-	int key_alt = 0;
+	int keyW = 0;
+	int keyS = 0;
+	int keyA = 0;
+	int keyD = 0;
+	int keyQ = 0;
+	int keyE = 0;
+	int keyAlt = 0;
 
 	int isFocusing = 0;
 	vec3 focusCenter;
-	vec3 focusingTargetPosition;
+	vec3 focusCameraPosition;
+	float focusDistance = 1.0f;
 
 	const float rotateSpeed = 13.0f;
 	const float moveSpeed = 60.0f;
@@ -54,7 +55,7 @@ class RenderWidget : public QWidget
 
 	uint captureX = 0, captureY = 0;
 
-	IMesh *_pGridMesh;
+	IMesh *pGridMesh;
 
 public:
     explicit RenderWidget(QWidget *parent = 0);

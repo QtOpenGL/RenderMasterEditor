@@ -93,10 +93,7 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	mousePos = event->pos();
-
-	dx = mousePos.x() - oldMousePos.x();
-	dy = mousePos.y() - oldMousePos.y();
-
+	deltaMousePos = mousePos - oldMousePos;
 	oldMousePos = mousePos;
 
 	int w = size().width();
@@ -108,24 +105,24 @@ void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 
 void RenderWidget::keyPressEvent(QKeyEvent *event)
 {
-	if (event->key() == Qt::Key_W) {key_w = 1; }
-	if (event->key() == Qt::Key_S) {key_s = 1; }
-	if (event->key() == Qt::Key_A) {key_a = 1; }
-	if (event->key() == Qt::Key_D) {key_d = 1; }
-	if (event->key() == Qt::Key_Q) {key_q = 1; }
-	if (event->key() == Qt::Key_E) {key_e = 1; }
-	if (event->key() == Qt::Key_Alt) {key_alt = 1; }
+	if (event->key() == Qt::Key_W) {keyW = 1; }
+	if (event->key() == Qt::Key_S) {keyS = 1; }
+	if (event->key() == Qt::Key_A) {keyA = 1; }
+	if (event->key() == Qt::Key_D) {keyD = 1; }
+	if (event->key() == Qt::Key_Q) {keyQ = 1; }
+	if (event->key() == Qt::Key_E) {keyE = 1; }
+	if (event->key() == Qt::Key_Alt) {keyAlt = 1; }
 }
 
 void RenderWidget::keyReleaseEvent(QKeyEvent *event)
 {
-	if (event->key() == Qt::Key_W) {key_w = 0; }
-	if (event->key() == Qt::Key_S) {key_s = 0; }
-	if (event->key() == Qt::Key_A) {key_a = 0; }
-	if (event->key() == Qt::Key_D) {key_d = 0; }
-	if (event->key() == Qt::Key_Q) {key_q = 0; }
-	if (event->key() == Qt::Key_E) {key_e = 0; }
-	if (event->key() == Qt::Key_Alt) {key_alt = 0; }
+	if (event->key() == Qt::Key_W) {keyW = 0; }
+	if (event->key() == Qt::Key_S) {keyS = 0; }
+	if (event->key() == Qt::Key_A) {keyA = 0; }
+	if (event->key() == Qt::Key_D) {keyD = 0; }
+	if (event->key() == Qt::Key_Q) {keyQ = 0; }
+	if (event->key() == Qt::Key_E) {keyE = 0; }
+	if (event->key() == Qt::Key_Alt) {keyAlt = 0; }
 }
 
 void RenderWidget::drawManipulator(ICamera *pCamera)
@@ -159,8 +156,8 @@ void RenderWidget::RenderWidget::drawGrid(const mat4 &VP)
 
 	pCoreRender->SetDepthTest(1);
 
-	pCoreRender->SetMesh(_pGridMesh);
-	pCoreRender->Draw(_pGridMesh);
+	pCoreRender->SetMesh(pGridMesh);
+	pCoreRender->Draw(pGridMesh);
 
 	shader->Release();
 }
@@ -197,8 +194,8 @@ void RenderWidget::onRender()
 
 		ManipulatorBase *manipulator = editor->CurrentManipulator();
 
-		// picking. render id's
-		if (!key_alt && // not in orbit mode
+		// picking
+		if (!keyAlt && // not in orbit mode
 			((!manipulator && leftMouseClick) ||
 			(leftMouseClick && manipulator && !manipulator->isMouseIntersects(normalizedMousePos))))
 		{
@@ -285,43 +282,38 @@ void RenderWidget::onUpdate(float dt)
 
 	if (isFocusing) // we are still focus
 	{
-		pos = lerp(pos, focusingTargetPosition, dt * 10.0f);
+		pos = lerp(pos, focusCameraPosition, dt * 10.0f);
 		pCamera->SetPosition(&pos);
 
-		if ((pos - focusingTargetPosition).Lenght() < 0.01f)
+		if ((pos - focusCameraPosition).Lenght() < 0.01f)
 			isFocusing = 0;
-	} else if (key_alt) // orbit mode
+	} else if (keyAlt) // orbit mode
 	{
 		if (rightMousePressed || leftMousePressed)
 		{
 			vec3 dPos = pos - focusCenter;
-			Spherical s_pos = ToSpherical(dPos);
+			Spherical sPos = ToSpherical(dPos);
 
 			if (rightMousePressed) // zoom
 			{
-				s_pos.r += (-dx-dy) * s_pos.r * dt * zoomSpeed;
-				s_pos.r = clamp(s_pos.r, 0.01f, std::numeric_limits<float>::max());
-
-				pos = ToCartesian(s_pos) + focusCenter;
-				//qDebug() << "dx=" << dx << " dPos = "<< vec3ToString(dPos) << "spherical = " << sphericalToString(s_pos);
+				sPos.r += (-deltaMousePos.x() - deltaMousePos.y()) * sPos.r * dt * zoomSpeed;
+				sPos.r = clamp(sPos.r, 0.01f, std::numeric_limits<float>::max());
+				pos = ToCartesian(sPos) + focusCenter;
 				pCamera->SetPosition(&pos);
 			}
 
 			if (leftMousePressed) // orbit
 			{
-				s_pos.phi -= dx * dt * orbitHorSpeed;
-
-				s_pos.theta -= dy * dt * orbitVertSpeed;
-				s_pos.theta = clamp(s_pos.theta, 0.01f, 3.14f);
-
-				pos = ToCartesian(s_pos) + focusCenter;
+				sPos.phi -= deltaMousePos.x() * dt * orbitHorSpeed;
+				sPos.theta -= deltaMousePos.y() * dt * orbitVertSpeed;
+				sPos.theta = clamp(sPos.theta, 0.01f, 3.14f);
+				pos = ToCartesian(sPos) + focusCenter;
+				pCamera->SetPosition(&pos);
 
 				mat4 new_rot_mat;
 				lookAtCamera(new_rot_mat, pos, focusCenter);
 				new_rot_mat.Transpose();
 				quat new_quat = quat(new_rot_mat);
-
-				pCamera->SetPosition(&pos);
 				pCamera->SetRotation(&new_quat);
 			}
 		}
@@ -335,38 +327,39 @@ void RenderWidget::onUpdate(float dt)
 		vec3 forward_direction = -vec3(M.Column(2)); // -Z local
 		vec3 up_direction = vec3(0.0f, 0.0f, 1.0f); // Z world
 
-		if (key_a)
+		if (keyA)
 			pos -= orth_direction * dt * moveSpeed;
 
-		if (key_d)
+		if (keyD)
 			pos += orth_direction * dt * moveSpeed;
 
-		if (key_w)
+		if (keyW)
 			pos += forward_direction * dt * moveSpeed;
 
-		if (key_s)
+		if (keyS)
 			pos -= forward_direction * dt * moveSpeed;
 
-		if (key_q)
+		if (keyQ)
 			pos -= up_direction * dt * moveSpeed;
 
-		if (key_e)
+		if (keyE)
 			pos += up_direction * dt * moveSpeed;
 
 		pCamera->SetPosition(&pos);
 
 		if (rightMousePressed)
 		{
-			quat dxRot = quat(-dy * dt * rotateSpeed, 0.0f, 0.0f);
-			quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotateSpeed);
+			quat dxRot = quat(-deltaMousePos.y() * dt * rotateSpeed, 0.0f, 0.0f);
+			quat dyRot = quat(0.0f, 0.0f,-deltaMousePos.x() * dt * rotateSpeed);
 			rot = dyRot * rot * dxRot;
 			pCamera->SetRotation(&rot);
 		}
+
+		focusCenter = pos + forward_direction * focusDistance;
 	}
 	}
 
-	dx = 0.0f;
-	dy = 0.0f;
+	deltaMousePos = {};
 }
 
 void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTER::AABB& aabb)
@@ -395,7 +388,13 @@ void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTE
 	float distance = objectHalfSize / tan(fovRads * 0.5f);
 
 	focusCenter = worldCenter;
-	focusingTargetPosition = worldCenter - view * distance;
+	focusCameraPosition = worldCenter - view * distance;
+
+	vec3 cameraPos;
+	pCamera->GetPosition(&cameraPos);
+	vec3 dPos = cameraPos - focusCenter;
+	Spherical sPos = ToSpherical(dPos);
+	focusDistance = sPos.r;
 
 	//qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);
 }
@@ -409,15 +408,15 @@ void RenderWidget::onEngineInited(ICore *pCoreIn)
 	pCore->GetSubSystem((ISubSystem **)&pSceneManager, RENDER_MASTER::SUBSYSTEM_TYPE::SCENE_MANAGER);
 	pCore->GetSubSystem((ISubSystem **)&pResMan, RENDER_MASTER::SUBSYSTEM_TYPE::RESOURCE_MANAGER);
 
-	pResMan->LoadMesh(&_pGridMesh, "std#grid");
-	_pGridMesh->AddRef();
+	pResMan->LoadMesh(&pGridMesh, "std#grid");
+	pGridMesh->AddRef();
 }
 
 void RenderWidget::onEngineClosed(ICore *pCoreIn)
 {
 	Q_UNUSED( pCoreIn )
 
-	_pGridMesh->Release();
+	pGridMesh->Release();
 
 	pCore = nullptr;
 }
