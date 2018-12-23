@@ -326,7 +326,7 @@ void RenderWidget::onUpdate(float dt)
 			}
 		}
 
-	} else
+	} else if (rightMousePressed)
 	{
 		mat4 M;
 		pCamera->GetModelMatrix(&M);

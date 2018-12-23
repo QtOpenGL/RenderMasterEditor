@@ -54,15 +54,6 @@ static ADS_NS::SectionContent::RefPtr createConsole(ADS_NS::ContainerWidget* con
     return sc;
 }
 
-
-static ADS_NS::SectionContent::RefPtr createCalendarSC(ADS_NS::ContainerWidget* container)
-{
-    QCalendarWidget* w = new QCalendarWidget();
-
-    const int index = ++CONTENT_COUNT;
-    return ADS_NS::SectionContent::newSectionContent(QString("Calendar-%1").arg(index), container, new IconTitleWidget(QIcon(), QString("Calendar %1").arg(index)), w);
-}
-
 static ADS_NS::SectionContent::RefPtr createD3D11Widget(ADS_NS::ContainerWidget* container)
 {
     RenderWidget* w = new RenderWidget();
@@ -140,8 +131,7 @@ void apply_light_style()
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+	QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -157,24 +147,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), this, SLOT(clone_node()));
 	new QShortcut(QKeySequence(Qt::Key_F7), this, SLOT(shaders_reload()));
 
-    //ConsoleWidget *c = new ConsoleWidget(this);
-    //c->show();
-
     // ADS - Create main container (ContainerWidget).
     _container = new ADS_NS::ContainerWidget();
-#if QT_VERSION >= 0x050000
-    //QObject::connect(_container, &ADS_NS::ContainerWidget::activeTabChanged, this, &MainWindow::onActiveTabChanged);
-    //QObject::connect(_container, &ADS_NS::ContainerWidget::sectionContentVisibilityChanged, this, &MainWindow::onSectionContentVisibilityChanged);
-#else
-    //QObject::connect(_container, SIGNAL(activeTabChanged(const SectionContent::RefPtr&, bool)), this, SLOT(onActiveTabChanged(const SectionContent::RefPtr&, bool)));
-    //QObject::connect(_container, SIGNAL(sectionContentVisibilityChanged(SectionContent::RefPtr,bool)), this, SLOT(onSectionContentVisibilityChanged(SectionContent::RefPtr,bool)));
-#endif
     setCentralWidget(_container);
 
     // ADS - Adding some contents.
     if (true)
-    {
-        // Test #1: Use high-level public API
+	{
         ADS_NS::ContainerWidget* cw = _container;
         ADS_NS::SectionWidget* sw = NULL;
 
@@ -184,37 +163,11 @@ MainWindow::MainWindow(QWidget *parent) :
         sc->setFlags(ADS_NS::SectionContent::AllFlags ^ ADS_NS::SectionContent::Closeable);
         sw = _container->addSectionContent(sc, sw, ADS_NS::TopDropArea);
 
-        //ADS_NS::SectionContent::RefPtr sc1 = createD3D11Widget(cw);
-        //sc1->setFlags(ADS_NS::SectionContent::AllFlags ^ ADS_NS::SectionContent::Closeable);
-        //sw = _container->addSectionContent(sc1, sw, ADS_NS::TopDropArea);
-        //
-        //ADS_NS::SectionContent::RefPtr sc2 = createD3D11Widget(cw);
-        //sc2->setFlags(ADS_NS::SectionContent::AllFlags ^ ADS_NS::SectionContent::Closeable);
-        //sw = _container->addSectionContent(sc2, sw, ADS_NS::TopDropArea);
-
-
-
-        //sw = _container->addSectionContent(createCalendarSC(cw), sw, ADS_NS::RightDropArea);
 		sw = _container->addSectionContent(createSceneTree(cw), nullptr, ADS_NS::LeftDropArea);
-
         sw = _container->addSectionContent(createProjectView(cw), nullptr, ADS_NS::BottomDropArea);
-
         sw = _container->addSectionContent(createPropertiesView(cw), nullptr, ADS_NS::RightDropArea);
-
-
-        //sc->setFlags(ADS_NS::SectionContent::AllFlags ^ ADS_NS::SectionContent::Closeable);
-
-        //_container->addSectionContent(createCalendarSC(_container));
-        //_container->addSectionContent(createLongTextLabelSC(_container));
-        //_container->addSectionContent(createLongTextLabelSC(_container));
-        //_container->addSectionContent(createLongTextLabelSC(_container));
-
-        //ADS_NS::SectionContent::RefPtr sc = createConsole(cw);
-        //sc->setFlags(ADS_NS::SectionContent::AllFlags ^ ADS_NS::SectionContent::Closeable);
-        //_container->addSectionContent(sc);
     }
 
-    // Default window geometry
     resize(800, 600);
     restoreGeometry(loadDataHelper("MainWindow"));
 
@@ -236,9 +189,7 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_actionNew_scene_triggered()
 {
-    dg = new Dialog(this);
-    //dg.setModal(true);
-    //
+	dg = new Dialog(this);
     dg->show();
     dg->exec();
 }
@@ -257,6 +208,11 @@ void MainWindow::closeEvent(QCloseEvent* e)
     Q_UNUSED(e);
     storeDataHelper("MainWindow", saveGeometry());
 	storeDataHelper("ContainerWidget", _container->saveState());
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+	qDebug() << "jjj";
 }
 
 
@@ -394,6 +350,5 @@ void MainWindow::shaders_reload()
 	core->GetSubSystem((ISubSystem**)&render, RENDER_MASTER::SUBSYSTEM_TYPE::RENDER);
 
 	render->ShadersReload();
-
 }
 

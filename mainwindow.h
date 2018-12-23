@@ -43,6 +43,7 @@ private slots:
 
 protected:
     virtual void closeEvent(QCloseEvent* e);
+	virtual void keyPressEvent(QKeyEvent *event) override;
 	//virtual void contextMenuEvent(QContextMenuEvent* e);
 
 private:

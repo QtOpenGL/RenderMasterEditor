@@ -93,7 +93,7 @@ QVariant SceneManagerModel::data( const QModelIndex &index, int role) const
 	{
 	case 0:
 	{
-		IGameObject *go = static_cast<IGameObject*>( index.internalPointer() );
+		IGameObject *go = static_cast<IGameObject*>(index.internalPointer());
 		const char *name;
 		go->GetName(&name);
 		return QVariant(name);
@@ -105,7 +105,12 @@ QVariant SceneManagerModel::data( const QModelIndex &index, int role) const
 	}
   } else if (role == Qt::DecorationRole)
   {
-		return QIcon(":/icons/cube.png");
+		IGameObject *go = static_cast<IGameObject*>(index.internalPointer());
+		IModel *m = dynamic_cast<IModel*>(go);
+		if (m)
+			return QIcon(":/icons/cube.png");
+		else
+			return QIcon(":/icons/camera.png");
   }
 
   return QVariant();

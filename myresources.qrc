@@ -9,6 +9,7 @@
         <file>cursor_black.png</file>
         <file>cursor_white.png</file>
         <file>cursor_blue.png</file>
+        <file>camera.png</file>
     </qresource>
     <qresource prefix="/styles">
         <file>dark.qss</file>
