@@ -97,7 +97,14 @@ void EditorGlobal::RaiseFocusOnSelevtedObjects()
 
 		AABB aabb = {-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f};
 
-		emit OnFocusAtSelectded(worldCeneter, aabb);
+		//IModel *m = dynamic_cast<IModel*>(_selectionGameObject);
+		//if (m)
+		//	m->GetAABB(&aabb);
+
+		vec4 middle = vec4(0.5f * (aabb.maxX + aabb.minX), 0.5f * (aabb.maxY + aabb.minY), 0.5f * (aabb.maxY + aabb.minY), 1.0f);
+		vec3 middleWorld = _selectionCenterWorldTransform * middle;
+
+		emit OnFocusAtSelectded(middleWorld, aabb);
 	}
 }
 

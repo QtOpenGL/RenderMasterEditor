@@ -60,7 +60,7 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 	{
 		//qDebug() << "RenderWidget::mousePressEvent(QMouseEvent *event)";
 		rightMousePressed = 1;
-		lastMousePos = event->pos();
+		oldMousePos = event->pos();
 	}
 
 	if (event->button() == Qt::LeftButton)
@@ -77,12 +77,12 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::RightButton)
-	{
-		//qDebug() << "RenderWidget::mouseReleaseEvent(QMouseEvent *event)";
 		rightMousePressed = 0;
-	}
+
 	if (event->button() == Qt::LeftButton)
 	{
+		leftMousePressed = 0;
+
 		ManipulatorBase *manipulator = editor->CurrentManipulator();
 		if (manipulator)
 			manipulator->mouseButtonUp();
@@ -92,21 +92,16 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void RenderWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	mousePosX = event->pos().x();
-	mousePosY = event->pos().y();
+	mousePos = event->pos();
+
+	dx = mousePos.x() - oldMousePos.x();
+	dy = mousePos.y() - oldMousePos.y();
+
+	oldMousePos = mousePos;
 
 	int w = size().width();
 	int h = size().height();
-	normalizedMousePos = vec2((float)mousePosX / w, (float)(h - mousePosY) / h);
-
-	if (pCore && rightMousePressed)
-	{
-		dx = event->pos().x() - lastMousePos.x();
-		dy = event->pos().y() - lastMousePos.y();
-		lastMousePos = event->pos();
-	}
-
-	leftMousePressed = 0;
+	normalizedMousePos = vec2((float)mousePos.x() / w, (float)(h - mousePos.y()) / h);
 
 	QWidget::mouseMoveEvent(event);
 }
@@ -119,6 +114,7 @@ void RenderWidget::keyPressEvent(QKeyEvent *event)
 	if (event->key() == Qt::Key_D) {key_d = 1; }
 	if (event->key() == Qt::Key_Q) {key_q = 1; }
 	if (event->key() == Qt::Key_E) {key_e = 1; }
+	if (event->key() == Qt::Key_Alt) {key_alt = 1; }
 }
 
 void RenderWidget::keyReleaseEvent(QKeyEvent *event)
@@ -129,6 +125,7 @@ void RenderWidget::keyReleaseEvent(QKeyEvent *event)
 	if (event->key() == Qt::Key_D) {key_d = 0; }
 	if (event->key() == Qt::Key_Q) {key_q = 0; }
 	if (event->key() == Qt::Key_E) {key_e = 0; }
+	if (event->key() == Qt::Key_Alt) {key_alt = 0; }
 }
 
 void RenderWidget::drawManipulator(ICamera *pCamera)
@@ -201,11 +198,10 @@ void RenderWidget::onRender()
 		ManipulatorBase *manipulator = editor->CurrentManipulator();
 
 		// picking. render id's
-		if ((!manipulator && leftMousePressed) ||
-			(leftMousePressed && manipulator && !manipulator->isMouseIntersects(normalizedMousePos)))
+		if (!key_alt && // not in orbit mode
+			((!manipulator && leftMouseClick) ||
+			(leftMouseClick && manipulator && !manipulator->isMouseIntersects(normalizedMousePos))))
 		{
-			leftMousePressed = 0;
-
 			IRender *render;
 			pCore->GetSubSystem((ISubSystem**)&render, SUBSYSTEM_TYPE::RENDER);
 
@@ -257,6 +253,8 @@ void RenderWidget::onRender()
 		}
 	}
 	eng->getCoreRender()->PopStates();
+
+	leftMouseClick = 0;
 }
 
 void RenderWidget::onUpdate(float dt)
@@ -282,6 +280,9 @@ void RenderWidget::onUpdate(float dt)
 	vec3 pos;
 	pCamera->GetPosition(&pos);
 
+	quat rot;
+	pCamera->GetRotation(&rot);
+
 	if (isFocusing) // we are still focus
 	{
 		pos = lerp(pos, focusingTargetPosition, dt * 10.0f);
@@ -289,6 +290,42 @@ void RenderWidget::onUpdate(float dt)
 
 		if ((pos - focusingTargetPosition).Lenght() < 0.01f)
 			isFocusing = 0;
+	} else if (key_alt) // orbit mode
+	{
+		if (rightMousePressed || leftMousePressed)
+		{
+			vec3 dPos = pos - focusCenter;
+			Spherical s_pos = ToSpherical(dPos);
+
+			if (rightMousePressed) // zoom
+			{
+				s_pos.r += (-dx-dy) * s_pos.r * dt * zoomSpeed;
+				s_pos.r = clamp(s_pos.r, 0.01f, std::numeric_limits<float>::max());
+
+				pos = ToCartesian(s_pos) + focusCenter;
+				//qDebug() << "dx=" << dx << " dPos = "<< vec3ToString(dPos) << "spherical = " << sphericalToString(s_pos);
+				pCamera->SetPosition(&pos);
+			}
+
+			if (leftMousePressed) // orbit
+			{
+				s_pos.phi -= dx * dt * orbitHorSpeed;
+
+				s_pos.theta -= dy * dt * orbitVertSpeed;
+				s_pos.theta = clamp(s_pos.theta, 0.01f, 3.14f);
+
+				pos = ToCartesian(s_pos) + focusCenter;
+
+				mat4 new_rot_mat;
+				lookAtCamera(new_rot_mat, pos, focusCenter);
+				new_rot_mat.Transpose();
+				quat new_quat = quat(new_rot_mat);
+
+				pCamera->SetPosition(&pos);
+				pCamera->SetRotation(&new_quat);
+			}
+		}
+
 	} else
 	{
 		mat4 M;
@@ -320,20 +357,16 @@ void RenderWidget::onUpdate(float dt)
 
 		if (rightMousePressed)
 		{
-			quat rot;
-			pCamera->GetRotation(&rot);
 			quat dxRot = quat(-dy * dt * rotateSpeed, 0.0f, 0.0f);
 			quat dyRot = quat(0.0f, 0.0f,-dx * dt * rotateSpeed);
 			rot = dyRot * rot * dxRot;
 			pCamera->SetRotation(&rot);
-
-			dx = 0.0f;
-			dy = 0.0f;
 		}
 	}
 	}
 
-	leftMouseClick = 0;
+	dx = 0.0f;
+	dy = 0.0f;
 }
 
 void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTER::AABB& aabb)
@@ -361,6 +394,7 @@ void RenderWidget::onFocusAtSelected(const vec3& worldCenter, const RENDER_MASTE
 
 	float distance = objectHalfSize / tan(fovRads * 0.5f);
 
+	focusCenter = worldCenter;
 	focusingTargetPosition = worldCenter - view * distance;
 
 	//qDebug() << "RenderWidget::onFocusAtSelected(): target = " << vec3ToString(focusingTargetPosition);

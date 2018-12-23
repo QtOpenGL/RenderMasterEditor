@@ -19,37 +19,41 @@ class RenderWidget : public QWidget
 
     HWND h;
 
-    RENDER_MASTER::ICore *pCore{nullptr};
-	RENDER_MASTER::ICoreRender *pCoreRender{nullptr};
-	RENDER_MASTER::IRender *pRender{nullptr};
-	RENDER_MASTER::ISceneManager *pSceneManager{nullptr};
-	RENDER_MASTER::IResourceManager *pResMan{nullptr};
+	RENDER_MASTER::ICore *pCore = nullptr;
+	RENDER_MASTER::ICoreRender *pCoreRender = nullptr;
+	RENDER_MASTER::IRender *pRender = nullptr;
+	RENDER_MASTER::ISceneManager *pSceneManager = nullptr;
+	RENDER_MASTER::IResourceManager *pResMan = nullptr;
 
-	int rightMousePressed{};
-    QPoint lastMousePos;
-    float dx{}, dy{};
-
+	int rightMousePressed = 0;
 	int leftMousePressed = 0;
 	int leftMouseClick = 0;
-	uint captureX = 0, captureY = 0;
 
-	uint mousePosX = 0, mousePosY = 0;
+	QPoint mousePos;
+	QPoint oldMousePos;
+	float dx = 0.0f, dy = 0.0f;
 	vec2 normalizedMousePos;
 
-    int key_w{};
-    int key_s{};
-    int key_a{};
-    int key_d{};
-    int key_q{};
-    int key_e{};
+	int key_w = 0;
+	int key_s = 0;
+	int key_a = 0;
+	int key_d = 0;
+	int key_q = 0;
+	int key_e = 0;
+	int key_alt = 0;
 
 	int isFocusing = 0;
+	vec3 focusCenter;
 	vec3 focusingTargetPosition;
 
 	const float rotateSpeed = 13.0f;
-	const float moveSpeed = 40.0f;
+	const float moveSpeed = 60.0f;
+	const float orbitHorSpeed = 0.29f;
+	const float orbitVertSpeed = 0.20f;
+	const float zoomSpeed = 0.20f;
 
-	// resources
+	uint captureX = 0, captureY = 0;
+
 	IMesh *_pGridMesh;
 
 public:
