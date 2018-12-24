@@ -15,9 +15,15 @@ const vec4 ColorSelection = vec4(1,1,0,1);
 const vec4 ColorRed = vec4(1,0,0,1);
 const vec4 ColorGreen = vec4(0,1,0,1);
 const vec4 ColorBlue = vec4(0,0,1,1);
+
 mat4 correctionXMat = mat4(1.0f);
 mat4 correctionYMat = mat4(1.0f);
 mat4 correctionZMat = mat4(1.0f);
+
+constexpr float axesPlaneScale = 0.33f;
+mat4 correctionXYMat = mat4(axesPlaneScale);
+mat4 correctionYZMat = mat4(axesPlaneScale);
+mat4 correctionZXMat = mat4(axesPlaneScale);
 
 float axisWorldSize(uint h, float dist)
 {
@@ -89,6 +95,16 @@ ManipulatorTranslator::ManipulatorTranslator(ICore *pCore) : ManipulatorBase(pCo
 	correctionZMat.el_2D[2][2] = 0.0f;
 	correctionZMat.el_2D[2][0] = 1.0f;
 	correctionZMat.el_2D[0][2] = 1.0f;
+
+	correctionZXMat.el_2D[2][2] = 0.0f;
+	correctionZXMat.el_2D[1][1] = 0.0f;
+	correctionZXMat.el_2D[1][2] = axesPlaneScale;
+	correctionZXMat.el_2D[2][1] = axesPlaneScale;
+
+	correctionYZMat.el_2D[0][0] = 0.0f;
+	correctionYZMat.el_2D[2][2] = 0.0f;
+	correctionYZMat.el_2D[2][0] = axesPlaneScale;
+	correctionYZMat.el_2D[0][2] = axesPlaneScale;
 }
 
 ManipulatorTranslator::~ManipulatorTranslator()
@@ -219,14 +235,13 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		pCoreRender->SetShader(shader);
 		pCoreRender->SetDepthTest(0);
 
-		mat4 distanceScaleMat;
-		distanceScaleMat.el_2D[0][0] = axisWorldSize(h, distToCenter);
-		distanceScaleMat.el_2D[1][1] = axisWorldSize(h, distToCenter);
-		distanceScaleMat.el_2D[2][2] = axisWorldSize(h, distToCenter);
+		mat4 distanceScaleMat = mat4(axisWorldSize(h, distToCenter));
+		mat4 scaledTransform = camViewProj * selectionWorldTransform * distanceScaleMat;
 
-		auto draw_axis = [&](AXIS type, const vec4& color, const mat4& correctionMat) -> void
+		auto draw_axis = [&](const vec4& color, const mat4& correctionMat) -> void
 		{
-			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * correctionMat;
+			mat4 MVP = scaledTransform * correctionMat;
+
 			shader->SetMat4Parameter("MVP", &MVP);
 			shader->SetVec4Parameter("main_color", &color);
 			shader->FlushParameters();
@@ -235,28 +250,10 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			pCoreRender->Draw(_pAxesArrowMesh);
 		};
 
-		auto draw_axis_plane = [&](AXIS_PLANE type, const vec4& color) -> void
+		auto draw_axis_plane = [&](const vec4& color, const mat4& correctionMat) -> void
 		{
-			constexpr float u = 0.33f;
-			mat4 correctionMat(u);
-			if (type == AXIS_PLANE::ZX)
-			{
-				correctionMat.el_2D[2][2] = 0.0f;
-				correctionMat.el_2D[1][1] = 0.0f;
-				correctionMat.el_2D[1][2] = u;
-				correctionMat.el_2D[2][1] = u;
-				correctionMat = zxPlaneMat * correctionMat;
-			} else if (type == AXIS_PLANE::YZ)
-			{
-				correctionMat.el_2D[0][0] = 0.0f;
-				correctionMat.el_2D[2][2] = 0.0f;
-				correctionMat.el_2D[2][0] = u;
-				correctionMat.el_2D[0][2] = u;
-				correctionMat = yzPlaneMat * correctionMat;
-			} else
-				correctionMat = xyPlaneMat * correctionMat;
+			mat4 MVP = scaledTransform * correctionMat;
 
-			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * correctionMat;
 			shader->SetMat4Parameter("MVP", &MVP);
 			shader->SetVec4Parameter("main_color", &color);
 			shader->FlushParameters();
@@ -265,13 +262,13 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		};
 
 
-		draw_axis_plane(AXIS_PLANE::XY, ColorSelection);
-		draw_axis_plane(AXIS_PLANE::YZ, ColorSelection);
-		draw_axis_plane(AXIS_PLANE::ZX, ColorSelection);
+		draw_axis_plane(ColorSelection, xyPlaneMat * correctionXYMat);
+		draw_axis_plane(ColorSelection, yzPlaneMat * correctionYZMat);
+		draw_axis_plane(ColorSelection, zxPlaneMat * correctionZXMat);
 
-		draw_axis(AXIS::X, (int)mouseHoverAxis == 0 ? ColorSelection : ColorRed,	correctionXMat);
-		draw_axis(AXIS::Y, (int)mouseHoverAxis == 1 ? ColorSelection : ColorGreen,	correctionYMat);
-		draw_axis(AXIS::Z, (int)mouseHoverAxis == 2 ? ColorSelection : ColorBlue,	correctionZMat);
+		draw_axis((int)mouseHoverAxis == 0 ? ColorSelection : ColorRed,	correctionXMat);
+		draw_axis((int)mouseHoverAxis == 1 ? ColorSelection : ColorGreen,	correctionYMat);
+		draw_axis((int)mouseHoverAxis == 2 ? ColorSelection : ColorBlue,	correctionZMat);
 
 		shader->Release();
 	}
