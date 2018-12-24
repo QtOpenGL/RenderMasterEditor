@@ -33,6 +33,6 @@ Line3D MouseToRay(const mat4& cameraModelMatrix, float fov, float aspect, const 
 vec2 WorldToNdc(const vec3& pos, const mat4& ViewProj);
 float PointToSegmentDistance(const vec2& p0, const vec2& p1, const vec2& ndc);
 vec2 NdcToScreen(const vec2& pos, uint w, uint h);
-float WorldDistance(const mat4& ViewProj, const mat4& worldTransform);
+float DistanceTo(const mat4& ViewProj, const mat4& worldTransform);
 
 #endif // MANIPULATORUTILS_H

@@ -62,7 +62,7 @@ vec2 NdcToScreen(const vec2 &ndc, uint w, uint h)
     return vec2(tmp.x * w, tmp.y * h);
 }
 
-float WorldDistance(const mat4& ViewProj, const mat4& worldTransform)
+float DistanceTo(const mat4& ViewProj, const mat4& worldTransform)
 {
 	vec4 view4 = ViewProj * vec4(worldTransform.el_2D[0][3], worldTransform.el_2D[1][3], worldTransform.el_2D[2][3], 1.0f);
 	vec3 view(view4);
