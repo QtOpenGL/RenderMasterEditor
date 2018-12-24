@@ -12,18 +12,11 @@ enum class AXIS
 	Z
 };
 
-enum class AXIS_PLANE
-{
-	XY,
-	YZ,
-	ZX
-};
-
 class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
 
-	AXIS mouseHoverAxis = AXIS::NONE;
+	AXIS underMouse = AXIS::NONE;
 	vec3 delta;
 	int isMoving = 0;
 	vec3 worldDelta;

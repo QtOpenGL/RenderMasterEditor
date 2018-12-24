@@ -113,16 +113,16 @@ ManipulatorTranslator::~ManipulatorTranslator()
 
 bool ManipulatorTranslator::isMouseIntersects(const vec2& normalizedMousePos)
 {
-	return mouseHoverAxis != AXIS::NONE;
+	return underMouse != AXIS::NONE;
 }
 
 void ManipulatorTranslator::mouseButtonDown(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
 {
-	if (mouseHoverAxis != AXIS::NONE)
+	if (AXIS::NONE < underMouse && underMouse <= AXIS::Z)
 	{
 		isMoving = 1;
 		mat4 selectionWorldTransform = editor->GetSelectionTransform();
-		vec3 dirWorld = selectionWorldTransform.Column3((int)mouseHoverAxis).Normalized();
+		vec3 dirWorld = selectionWorldTransform.Column3((int)underMouse).Normalized();
 		vec3 center = selectionWorldTransform.Column3(3);
 		lineAlongMoving = Line3D(dirWorld, center);
 	}
@@ -143,6 +143,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
 
+	// we are move manipulator translator by mouse
 	if (isMoving)
 	{
 		if (!lastNormalizedMousePos.Aproximately(normalizedMousePos))
@@ -153,7 +154,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 			vec3 intersectionWorld;
 			float intersectionDistance;
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesDirWorld, mouseHoverAxis, intersectionWorld, intersectionDistance);
+			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesDirWorld, underMouse, intersectionWorld, intersectionDistance);
 
 			if (intersectionDistance < MaxDistance)
 			{
@@ -166,10 +167,10 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 		}
 
 	} else
-	{
+	{ // we track mouse for axes hightlighting
 		vec3 center = selectionWorldTransform.Column3(3);
 		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
-		mouseHoverAxis = AXIS::NONE;
+		underMouse = AXIS::NONE;
 		float minDist = MaxDistance;
 
 		for (int i = 0; i < 3; i++)
@@ -182,7 +183,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			if (intersectionDistance < SelectDistance && intersectionDistance < minDist)
 			{
 				minDist = intersectionDistance;
-				mouseHoverAxis = (AXIS)i;
+				underMouse = (AXIS)i;
 
 				Line3D axis3d = Line3D(axes[i], center);
 				vec3 projectedToLinePoint = axis3d.projectPoint(intersectionWorld);
@@ -266,9 +267,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		draw_axis_plane(ColorSelection, yzPlaneMat * correctionYZMat);
 		draw_axis_plane(ColorSelection, zxPlaneMat * correctionZXMat);
 
-		draw_axis((int)mouseHoverAxis == 0 ? ColorSelection : ColorRed,	correctionXMat);
-		draw_axis((int)mouseHoverAxis == 1 ? ColorSelection : ColorGreen,	correctionYMat);
-		draw_axis((int)mouseHoverAxis == 2 ? ColorSelection : ColorBlue,	correctionZMat);
+		draw_axis(underMouse == AXIS::X ? ColorSelection : ColorRed,	correctionXMat);
+		draw_axis(underMouse == AXIS::Y ? ColorSelection : ColorGreen,	correctionYMat);
+		draw_axis(underMouse == AXIS::Z ? ColorSelection : ColorBlue,	correctionZMat);
 
 		shader->Release();
 	}
