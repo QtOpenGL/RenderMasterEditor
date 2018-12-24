@@ -12,6 +12,13 @@ enum class AXIS
 	Z
 };
 
+enum class AXIS_PLANE
+{
+	XY,
+	YZ,
+	ZX
+};
+
 class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
@@ -19,9 +26,11 @@ class ManipulatorTranslator : public ManipulatorBase
 	AXIS mouseHoverAxis = AXIS::NONE;
 	vec3 delta;
 	int isMoving = 0;
-
-	// not moving
 	vec3 worldDelta;
+
+	mat4 xyPlaneMat = mat4(1.0f);
+	mat4 yzPlaneMat = mat4(1.0f);
+	mat4 zxPlaneMat = mat4(1.0f);
 
 	// moving
 	AXIS axisMoving = AXIS::NONE;
@@ -31,7 +40,7 @@ class ManipulatorTranslator : public ManipulatorBase
 	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS type, vec3& worldOut, float& distance);
 
 public:
-	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}
+	ManipulatorTranslator(RENDER_MASTER::ICore *pCore);
 	virtual ~ManipulatorTranslator();
 
 	// IManipulator interface

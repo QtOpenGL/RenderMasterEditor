@@ -15,10 +15,13 @@ const vec4 ColorSelection = vec4(1,1,0,1);
 const vec4 ColorRed = vec4(1,0,0,1);
 const vec4 ColorGreen = vec4(0,1,0,1);
 const vec4 ColorBlue = vec4(0,0,1,1);
+mat4 correctionXMat = mat4(1.0f);
+mat4 correctionYMat = mat4(1.0f);
+mat4 correctionZMat = mat4(1.0f);
 
 float axisWorldSize(uint h, float dist)
 {
-	return (85.0f / h) * dist;
+	return (90.0f / h) * dist;
 }
 
 void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3 &axisWorldSpace, AXIS type, vec3 &worldOut, float &distance)
@@ -75,6 +78,19 @@ void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const 
 	distance = MaxDistance;
 }
 
+ManipulatorTranslator::ManipulatorTranslator(ICore *pCore) : ManipulatorBase(pCore)
+{
+	correctionYMat.el_2D[0][0] = 0.0f;
+	correctionYMat.el_2D[1][1] = 0.0f;
+	correctionYMat.el_2D[1][0] = 1.0f;
+	correctionYMat.el_2D[0][1] = 1.0f;
+
+	correctionZMat.el_2D[0][0] = 0.0f;
+	correctionZMat.el_2D[2][2] = 0.0f;
+	correctionZMat.el_2D[2][0] = 1.0f;
+	correctionZMat.el_2D[0][2] = 1.0f;
+}
+
 ManipulatorTranslator::~ManipulatorTranslator()
 {
 }
@@ -109,6 +125,8 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 		return;
 	}
 
+	mat4 selectionWorldTransform = editor->GetSelectionTransform();
+
 	if (isMoving)
 	{
 		if (!lastNormalizedMousePos.Aproximately(normalizedMousePos))
@@ -133,7 +151,6 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 	} else
 	{
-		mat4 selectionWorldTransform = editor->GetSelectionTransform();
 		vec3 center = selectionWorldTransform.Column3(3);
 		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
 		mouseHoverAxis = AXIS::NONE;
@@ -157,6 +174,20 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			}
 		}
 	}
+
+
+	// project camera position to "axis space"
+	vec3 cameraPos;
+	pCamera->GetPosition(&cameraPos);
+	mat4 invSelectionWorldTransform = selectionWorldTransform.Inverse();
+	vec4 camPos_axesSpace = invSelectionWorldTransform * vec4(cameraPos);
+	xyPlaneMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
+	xyPlaneMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
+	yzPlaneMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
+	yzPlaneMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+	zxPlaneMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
+	zxPlaneMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
@@ -193,24 +224,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		distanceScaleMat.el_2D[1][1] = axisWorldSize(h, distToCenter);
 		distanceScaleMat.el_2D[2][2] = axisWorldSize(h, distToCenter);
 
-		auto draw_axis = [&](AXIS type, const vec4& color) -> void
+		auto draw_axis = [&](AXIS type, const vec4& color, const mat4& correctionMat) -> void
 		{
-			mat4 rotationMat(1.0f);
-			if (type == AXIS::Y)
-			{
-				rotationMat.el_2D[0][0] = 0.0f;
-				rotationMat.el_2D[1][1] = 0.0f;
-				rotationMat.el_2D[1][0] = 1.0f;
-				rotationMat.el_2D[0][1] = 1.0f;
-			} else if (type == AXIS::Z)
-			{
-				rotationMat.el_2D[0][0] = 0.0f;
-				rotationMat.el_2D[2][2] = 0.0f;
-				rotationMat.el_2D[2][0] = 1.0f;
-				rotationMat.el_2D[0][2] = 1.0f;
-			}
-
-			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * rotationMat;
+			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * correctionMat;
 			shader->SetMat4Parameter("MVP", &MVP);
 			shader->SetVec4Parameter("main_color", &color);
 			shader->FlushParameters();
@@ -219,9 +235,43 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 			pCoreRender->Draw(_pAxesArrowMesh);
 		};
 
-		draw_axis(AXIS::X, (int)mouseHoverAxis == 0 ? ColorSelection : ColorRed);
-		draw_axis(AXIS::Y, (int)mouseHoverAxis == 1 ? ColorSelection : ColorGreen);
-		draw_axis(AXIS::Z, (int)mouseHoverAxis == 2 ? ColorSelection : ColorBlue);
+		auto draw_axis_plane = [&](AXIS_PLANE type, const vec4& color) -> void
+		{
+			constexpr float u = 0.33f;
+			mat4 correctionMat(u);
+			if (type == AXIS_PLANE::ZX)
+			{
+				correctionMat.el_2D[2][2] = 0.0f;
+				correctionMat.el_2D[1][1] = 0.0f;
+				correctionMat.el_2D[1][2] = u;
+				correctionMat.el_2D[2][1] = u;
+				correctionMat = zxPlaneMat * correctionMat;
+			} else if (type == AXIS_PLANE::YZ)
+			{
+				correctionMat.el_2D[0][0] = 0.0f;
+				correctionMat.el_2D[2][2] = 0.0f;
+				correctionMat.el_2D[2][0] = u;
+				correctionMat.el_2D[0][2] = u;
+				correctionMat = yzPlaneMat * correctionMat;
+			} else
+				correctionMat = xyPlaneMat * correctionMat;
+
+			mat4 MVP = camViewProj * selectionWorldTransform * distanceScaleMat * correctionMat;
+			shader->SetMat4Parameter("MVP", &MVP);
+			shader->SetVec4Parameter("main_color", &color);
+			shader->FlushParameters();
+
+			pCoreRender->Draw(_pQuadLines);
+		};
+
+
+		draw_axis_plane(AXIS_PLANE::XY, ColorSelection);
+		draw_axis_plane(AXIS_PLANE::YZ, ColorSelection);
+		draw_axis_plane(AXIS_PLANE::ZX, ColorSelection);
+
+		draw_axis(AXIS::X, (int)mouseHoverAxis == 0 ? ColorSelection : ColorRed,	correctionXMat);
+		draw_axis(AXIS::Y, (int)mouseHoverAxis == 1 ? ColorSelection : ColorGreen,	correctionYMat);
+		draw_axis(AXIS::Z, (int)mouseHoverAxis == 2 ? ColorSelection : ColorBlue,	correctionZMat);
 
 		shader->Release();
 	}
