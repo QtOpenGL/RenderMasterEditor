@@ -174,6 +174,8 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	mat4 invSelectionWorldTransform = selectionWorldTransform.Inverse();
 	vec3 center = selectionWorldTransform.Column3(3);
 
+	float aspect = (float)screen.width() / screen.height();
+
 
 	if (isMoving == 1) // we move manipulator arrow by mouse
 	{
@@ -189,13 +191,27 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			if (intersectionDistance < MaxDistanceInPixels)
 			{
 				vec3 pos = movesAlongLine.projectPoint(intersectionWorld) - worldDelta;
-
 				editor->GetSelectionObject()->SetPosition(&pos);
 			}
 		}
 
 	} else if (isMoving == 2) // we move manipulator plane by mouse
 	{
+
+		float camFov;
+		pCamera->GetFovAngle(&camFov);
+
+		mat4 camModelMatrix;
+		pCamera->GetModelMatrix(&camModelMatrix);
+
+		Line3D ray = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
+
+		vec3 worldIntersection;
+		if (LineIntersectPlane(worldIntersection, movesAlongPlane, ray))
+		{
+			vec3 pos = worldIntersection - worldDelta;
+			editor->GetSelectionObject()->SetPosition(&pos);
+		}
 
 	} else
 	{
@@ -231,8 +247,13 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 		// Check if mouse intersects axis plane
 
+		float camFov;
+		pCamera->GetFovAngle(&camFov);
+
+		mat4 camModelMatrix;
+		pCamera->GetModelMatrix(&camModelMatrix);
+
 		mat4 camViewProj;
-		float aspect = (float)screen.width() / screen.height();
 		pCamera->GetViewProjectionMatrix(&camViewProj, aspect);
 
 		float distToCenter = DistanceTo(camViewProj, selectionWorldTransform);
@@ -261,6 +282,28 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 				{
 					underMouse = static_cast<AXIS_EL>(int(AXIS_EL::XY) + k);
 				}
+			}
+		}
+
+		if (AXIS_EL::XY <= underMouse && underMouse <= AXIS_EL::ZX)
+		{
+			vec3 N = axesWorldDirection[0].Cross(axesWorldDirection[1]);
+			if (underMouse == AXIS_EL::YZ)
+				N = axesWorldDirection[1].Cross(axesWorldDirection[2]);
+			else if (underMouse == AXIS_EL::ZX)
+				N = axesWorldDirection[0].Cross(axesWorldDirection[2]);
+
+			movesAlongPlane = Plane(N, center);
+
+
+			Line3D ray = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
+
+			vec3 worldIntersection;
+			if (LineIntersectPlane(worldIntersection, movesAlongPlane, ray))
+			{
+				worldDelta = worldIntersection - center;
+
+				//qDebug() << vec3ToString(worldDelta);
 			}
 		}
 	}

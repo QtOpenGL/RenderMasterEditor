@@ -6,19 +6,16 @@ bool LineIntersectPlane(vec3& intersection, const Plane& plane, const Line3D& li
 	vec3 R = line.direction.Normalized();
 	vec3 N = plane.normal.Normalized();
 
-	float denom = N.Dot(R);
-    if (denom > 1e-6) {
-		vec3 p0l0 = plane.origin - line.origin;
-        float t = p0l0.Dot(N) / denom;
-		if (t >= 0)
-		{
-			intersection = line.origin + R * t;
-			return true;
-		}
-		return false;
-	}
+	float d = N.Dot(plane.origin);
 
-	return false;
+	float denom = N.Dot(R);
+	if (abs(denom) < 0.00001f) return false;
+
+	float x = (d - N.Dot(line.origin)) / denom;
+
+	intersection = line.origin + R * x;
+
+	return true;
 }
 
 Line3D MouseToRay(const mat4& cameraModelMatrix, float fov, float aspect, const vec2& ndc)
