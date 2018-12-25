@@ -15,6 +15,7 @@ const vec4 ColorSelection = vec4(1,1,0,1);
 const vec4 ColorRed = vec4(1,0,0,1);
 const vec4 ColorGreen = vec4(0,1,0,1);
 const vec4 ColorBlue = vec4(0,0,1,1);
+const vec4 ColorMagneta = vec4(0,1,1,1);
 
 mat4 correctionXMat = mat4(1.0f);
 mat4 correctionYMat = mat4(1.0f);
@@ -24,6 +25,9 @@ constexpr float axesPlaneScale = 0.33f;
 mat4 correctionXYMat = mat4(axesPlaneScale);
 mat4 correctionYZMat = mat4(axesPlaneScale);
 mat4 correctionZXMat = mat4(axesPlaneScale);
+
+vec4 triangle_[2][3];
+
 
 float axisWorldSize(uint h, float dist)
 {
@@ -72,7 +76,7 @@ void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const 
 	   vec2 A = NdcToScreen(WorldToNdc(center, camViewProj), w, h);
 	   vec4 axisEndpointLocal = vec4(AxesEndpoints[(int)type] * axisWorldSize(h, distToCenter));
 	   vec4 axisEndpointWorld = selectionWorldTransform * axisEndpointLocal;
-	   vec2 Bndc = WorldToNdc(axisEndpointWorld.Vec3(), camViewProj);
+	   vec2 Bndc = WorldToNdc((vec3&)axisEndpointWorld, camViewProj);
 	   vec2 B = NdcToScreen(Bndc, w, h);
 
 	   distance = PointToSegmentDistance(A, B, I);
@@ -105,6 +109,14 @@ ManipulatorTranslator::ManipulatorTranslator(ICore *pCore) : ManipulatorBase(pCo
 	correctionYZMat.el_2D[2][2] = 0.0f;
 	correctionYZMat.el_2D[2][0] = axesPlaneScale;
 	correctionYZMat.el_2D[0][2] = axesPlaneScale;
+
+	triangle_[0][0] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	triangle_[0][1] = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	triangle_[0][2] = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+
+	triangle_[1][0] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	triangle_[1][1] = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+	triangle_[1][2] = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 }
 
 ManipulatorTranslator::~ManipulatorTranslator()
@@ -133,6 +145,26 @@ void ManipulatorTranslator::mouseButtonUp()
 	isMoving = 0;
 }
 
+float sig(const vec2& p1, const vec2& p2, const vec2& p3)
+{
+	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
+
+bool PointInTriangle(const vec2& pt, const vec2& v1, const vec2& v2, const vec2& v3)
+{
+	float d1, d2, d3;
+	bool has_neg, has_pos;
+
+	d1 = sig(pt, v1, v2);
+	d2 = sig(pt, v2, v3);
+	d3 = sig(pt, v3, v1);
+
+	has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+	has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+	return !(has_neg && has_pos);
+}
+
 void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos)
 {
 	if (!editor->IsSomeObjectSelected())
@@ -143,7 +175,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
 
-	// we move manipulator translator by mouse
+	// we move manipulator by mouse
 	if (isMoving)
 	{
 		if (!lastNormalizedMousePos.Aproximately(normalizedMousePos))
@@ -166,10 +198,13 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 		}
 
 	} else
-	{ // we track mouse for axes selecting
-		vec3 center = selectionWorldTransform.Column3(3);
-		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
+	{
 		underMouse = AXIS_EL::NONE;
+		vec3 center = selectionWorldTransform.Column3(3);
+
+		// check if mouse select axes
+
+		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
 		float minDist = MaxDistance;
 
 		for (int i = 0; i < 3; i++)
@@ -191,6 +226,43 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 				delta = projectedToAxisLinePoint - center;
 			}
 		}
+
+		// check if mouse select axis plane
+
+		mat4 camViewProj;
+		float aspect = (float)screen.width() / screen.height();
+		pCamera->GetViewProjectionMatrix(&camViewProj, aspect);
+
+		float distToCenter = DistanceTo(camViewProj, selectionWorldTransform);
+		mat4 distanceScaleMat = mat4(axisWorldSize(screen.height(), distToCenter));
+		mat4 tmpMat = camViewProj * selectionWorldTransform * distanceScaleMat;
+
+		mat4 axisToWorld[3];
+		axisToWorld[0] = tmpMat * xyPlaneMat * correctionXYMat;
+		axisToWorld[1] = tmpMat * yzPlaneMat * correctionYZMat;
+		axisToWorld[2] = tmpMat * zxPlaneMat * correctionZXMat;
+
+		vec2 ndcMouse = normalizedMousePos * 2.0f - vec2(1.0f, 1.0f);
+
+		for (int k = 0; k < 3; k++) // each plane
+		{
+			for (int j = 0; j < 2; j++) // 2 triangle
+			{
+				vec4 ndc[3];
+				for (int i = 0; i < 3; i++) // 3 point
+				{
+					ndc[i] = axisToWorld[k] * triangle_[j][i];
+					ndc[i] /= ndc[i].w;
+				}
+
+				if (PointInTriangle(ndcMouse, ndc[0], ndc[1], ndc[2]))
+				{
+					underMouse = static_cast<AXIS_EL>(int(AXIS_EL::XY) + k);
+				}
+			}
+		}
+
+		//qDebug() << vec2ToString(ndcMouse)<< vec2ToString(ndc[0])<< vec2ToString(ndc[1])<< vec2ToString(ndc[2]);
 	}
 
 
@@ -258,11 +330,11 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 	};
 
 
-	draw_axis_plane(ColorSelection, xyPlaneMat * correctionXYMat);
-	draw_axis_plane(ColorSelection, yzPlaneMat * correctionYZMat);
-	draw_axis_plane(ColorSelection, zxPlaneMat * correctionZXMat);
+	draw_axis_plane(underMouse == AXIS_EL::XY ? ColorSelection : ColorMagneta, xyPlaneMat * correctionXYMat);
+	draw_axis_plane(underMouse == AXIS_EL::YZ ? ColorSelection : ColorMagneta, yzPlaneMat * correctionYZMat);
+	draw_axis_plane(underMouse == AXIS_EL::ZX ? ColorSelection : ColorMagneta, zxPlaneMat * correctionZXMat);
 
-	draw_axis(underMouse == AXIS_EL::X ? ColorSelection : ColorRed,	correctionXMat);
+	draw_axis(underMouse == AXIS_EL::X ? ColorSelection : ColorRed,		correctionXMat);
 	draw_axis(underMouse == AXIS_EL::Y ? ColorSelection : ColorGreen,	correctionYMat);
 	draw_axis(underMouse == AXIS_EL::Z ? ColorSelection : ColorBlue,	correctionZMat);
 
