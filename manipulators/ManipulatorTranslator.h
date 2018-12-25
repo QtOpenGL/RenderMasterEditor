@@ -19,19 +19,20 @@ class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
 
-	AXIS_EL underMouse = AXIS_EL::NONE;
-	vec3 delta;
+	// state
 	int isMoving = 0;
+	AXIS_EL underMouse = AXIS_EL::NONE;
+	vec2 oldNormalizedMousePos;
+
+	// moving state
+	AXIS_EL movingAxis = AXIS_EL::NONE;
+	Line3D movesAlongLine;
 	vec3 worldDelta;
 
-	mat4 xyPlaneMat = mat4(1.0f);
-	mat4 yzPlaneMat = mat4(1.0f);
-	mat4 zxPlaneMat = mat4(1.0f);
-
-	// moving
-	AXIS_EL axisMoving = AXIS_EL::NONE;
-	Line3D lineAlongMoving;
-	vec2 lastNormalizedMousePos;
+	// axis plane
+	mat4 xyMirroringMat = mat4(1.0f);
+	mat4 yzMirroringMat = mat4(1.0f);
+	mat4 zxMirroringMat = mat4(1.0f);
 
 	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS_EL type, vec3& worldOut, float& distance);
 

@@ -8,8 +8,8 @@ using namespace RENDER_MASTER;
 extern EditorGlobal* editor;
 extern EngineGlobal* eng;
 
-const float SelectDistance = 8.0f;
-const float MaxDistance = 1000000.0f;
+const float SelectionThresholdInPixels = 8.0f;
+const float MaxDistanceInPixels = 1000000.0f;
 const vec3 AxesEndpoints[3] = {vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1)};
 const vec4 ColorSelection = vec4(1,1,0,1);
 const vec4 ColorRed = vec4(1,0,0,1);
@@ -85,7 +85,7 @@ void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const 
 	   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
 	}
 
-	distance = MaxDistance;
+	distance = MaxDistanceInPixels;
 }
 
 ManipulatorTranslator::ManipulatorTranslator(ICore *pCore) : ManipulatorBase(pCore)
@@ -113,7 +113,6 @@ ManipulatorTranslator::ManipulatorTranslator(ICore *pCore) : ManipulatorBase(pCo
 	triangle_[0][0] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	triangle_[0][1] = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 	triangle_[0][2] = vec4(1.0f, 1.0f, 0.0f, 1.0f);
-
 	triangle_[1][0] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	triangle_[1][1] = vec4(1.0f, 1.0f, 0.0f, 1.0f);
 	triangle_[1][2] = vec4(0.0f, 1.0f, 0.0f, 1.0f);
@@ -134,9 +133,9 @@ void ManipulatorTranslator::mouseButtonDown(ICamera *pCamera, const QRect &scree
 	{
 		isMoving = 1;
 		mat4 selectionWorldTransform = editor->GetSelectionTransform();
-		vec3 dirWorld = selectionWorldTransform.Column3((int)underMouse).Normalized();
+		vec3 worldDirection = selectionWorldTransform.Column3((int)underMouse).Normalized();
 		vec3 center = selectionWorldTransform.Column3(3);
-		lineAlongMoving = Line3D(dirWorld, center);
+		movesAlongLine = Line3D(worldDirection, center);
 	}
 }
 
@@ -174,60 +173,63 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	}
 
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
+	mat4 invSelectionWorldTransform = selectionWorldTransform.Inverse();
+	vec3 center = selectionWorldTransform.Column3(3);
 
 	// we move manipulator by mouse
 	if (isMoving)
 	{
-		if (!lastNormalizedMousePos.Aproximately(normalizedMousePos))
+		if (!oldNormalizedMousePos.Aproximately(normalizedMousePos))
 		{
-			lastNormalizedMousePos = normalizedMousePos;
-			vec3 axesDirWorld = lineAlongMoving.direction;
+			oldNormalizedMousePos = normalizedMousePos;
+
 			vec3 intersectionWorld;
 			float intersectionDistance;
 
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesDirWorld, underMouse, intersectionWorld, intersectionDistance);
+			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, movesAlongLine.direction, underMouse, intersectionWorld, intersectionDistance);
 
-			if (intersectionDistance < MaxDistance)
+			if (intersectionDistance < MaxDistanceInPixels)
 			{
-				vec3 projectedToLinePoint = lineAlongMoving.projectPoint(intersectionWorld);
+				vec3 pos = movesAlongLine.projectPoint(intersectionWorld) - worldDelta;
 
-				vec3 pos = projectedToLinePoint - delta;
-				IGameObject *g = editor->GetSelectionObject();
-				g->SetPosition(&pos);
+				editor->GetSelectionObject()->SetPosition(&pos);
 			}
 		}
 
 	} else
 	{
 		underMouse = AXIS_EL::NONE;
-		vec3 center = selectionWorldTransform.Column3(3);
 
-		// check if mouse select axes
 
-		vec3 axes[3] = { selectionWorldTransform.Column3(0).Normalized(), selectionWorldTransform.Column3(1).Normalized(), selectionWorldTransform.Column3(2).Normalized() };
-		float minDist = MaxDistance;
+		// Check if mouse intersects axes
+
+		vec3 axesWorldDirection[3] = { selectionWorldTransform.Column3(0).Normalized(),
+										selectionWorldTransform.Column3(1).Normalized(),
+										selectionWorldTransform.Column3(2).Normalized() };
+		float minDist = MaxDistanceInPixels;
 
 		for (int i = 0; i < 3; i++)
 		{
-			vec3 intersectionWorld;
-			vec3 intersectionDeltaToCenter;
-			float intersectionDistance;
+			vec3 itscWorld;
+			vec3 itscDeltaToCenter;
+			float itscDistance;
 
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axes[i], (AXIS_EL)i, intersectionWorld, intersectionDistance);
+			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesWorldDirection[i], (AXIS_EL)i, itscWorld, itscDistance);
 
-			if (intersectionDistance < SelectDistance && intersectionDistance < minDist)
+			if (itscDistance < SelectionThresholdInPixels && itscDistance < minDist)
 			{
-				minDist = intersectionDistance;
-				underMouse = (AXIS_EL)i;
-				Line3D axisLine = Line3D(axes[i], center);
+				minDist = itscDistance;
 
-				vec3 projectedToAxisLinePoint = axisLine.projectPoint(intersectionWorld);
+				underMouse = static_cast<AXIS_EL>(i);
 
-				delta = projectedToAxisLinePoint - center;
+				Line3D axisLine = Line3D(axesWorldDirection[i], center);
+				vec3 projectedToAxisLinePoint = axisLine.projectPoint(itscWorld);
+				worldDelta = projectedToAxisLinePoint - center;
 			}
 		}
 
-		// check if mouse select axis plane
+
+		// Check if mouse intersects axis plane
 
 		mat4 camViewProj;
 		float aspect = (float)screen.width() / screen.height();
@@ -238,9 +240,9 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 		mat4 tmpMat = camViewProj * selectionWorldTransform * distanceScaleMat;
 
 		mat4 axisToWorld[3];
-		axisToWorld[0] = tmpMat * xyPlaneMat * correctionXYMat;
-		axisToWorld[1] = tmpMat * yzPlaneMat * correctionYZMat;
-		axisToWorld[2] = tmpMat * zxPlaneMat * correctionZXMat;
+		axisToWorld[0] = tmpMat * xyMirroringMat * correctionXYMat;
+		axisToWorld[1] = tmpMat * yzMirroringMat * correctionYZMat;
+		axisToWorld[2] = tmpMat * zxMirroringMat * correctionZXMat;
 
 		vec2 ndcMouse = normalizedMousePos * 2.0f - vec2(1.0f, 1.0f);
 
@@ -266,17 +268,17 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	}
 
 
-	// project camera position to "axis space"
+	// Project camera position to "axis space"
 	vec3 cameraPos;
 	pCamera->GetPosition(&cameraPos);
-	mat4 invSelectionWorldTransform = selectionWorldTransform.Inverse();
 	vec4 camPos_axesSpace = invSelectionWorldTransform * vec4(cameraPos);
-	xyPlaneMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
-	xyPlaneMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
-	yzPlaneMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
-	yzPlaneMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
-	zxPlaneMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
-	zxPlaneMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+
+	xyMirroringMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
+	xyMirroringMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
+	yzMirroringMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
+	yzMirroringMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+	zxMirroringMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
+	zxMirroringMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
@@ -329,10 +331,9 @@ void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect&
 		pCoreRender->Draw(_pQuadLines);
 	};
 
-
-	draw_axis_plane(underMouse == AXIS_EL::XY ? ColorSelection : ColorMagneta, xyPlaneMat * correctionXYMat);
-	draw_axis_plane(underMouse == AXIS_EL::YZ ? ColorSelection : ColorMagneta, yzPlaneMat * correctionYZMat);
-	draw_axis_plane(underMouse == AXIS_EL::ZX ? ColorSelection : ColorMagneta, zxPlaneMat * correctionZXMat);
+	draw_axis_plane(underMouse == AXIS_EL::XY ? ColorSelection : ColorMagneta, xyMirroringMat * correctionXYMat);
+	draw_axis_plane(underMouse == AXIS_EL::YZ ? ColorSelection : ColorMagneta, yzMirroringMat * correctionYZMat);
+	draw_axis_plane(underMouse == AXIS_EL::ZX ? ColorSelection : ColorMagneta, zxMirroringMat * correctionZXMat);
 
 	draw_axis(underMouse == AXIS_EL::X ? ColorSelection : ColorRed,		correctionXMat);
 	draw_axis(underMouse == AXIS_EL::Y ? ColorSelection : ColorGreen,	correctionYMat);
