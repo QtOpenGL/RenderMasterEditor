@@ -34,13 +34,11 @@ float axisWorldSize(uint h, float dist)
 	return (90.0f / h) * dist;
 }
 
-void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3 &axisWorldSpace, AXIS_EL type, vec3 &worldOut, float &distance)
+void ManipulatorTranslator::intersectMouseWithAxis(ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3 &axisWorldSpace, AXIS_EL type, vec3 &worldOut, float &distance)
 {
-	// screen
 	uint w = screen.width();
 	uint h = screen.height();
 
-	// camera
 	mat4 camViewProj;
 	float aspect = (float)w / h;
 	pCamera->GetViewProjectionMatrix(&camViewProj, aspect);
@@ -49,40 +47,33 @@ void ManipulatorTranslator::intersectMouseWithAxisPlane(ICamera *pCamera, const 
 	pCamera->GetModelMatrix(&camModelMatrix);
 	vec3 cameraPosition = camModelMatrix.Column3(3);
 
-	mat4 camProjMat;
-	pCamera->GetProjectionMatrix(&camProjMat, aspect);
-
 	float camFov;
 	pCamera->GetFovAngle(&camFov);
 
-	// selection
 	mat4 selectionWorldTransform = editor->GetSelectionTransform();
-	float distToCenter = DistanceTo(camViewProj, selectionWorldTransform);
 	vec3 center = selectionWorldTransform.Column3(3);
 	vec3 V = (center - cameraPosition).Normalized();
-
 	vec3 VcrossAxis = V.Cross(axisWorldSpace).Normalized();
 	vec3 N = axisWorldSpace.Cross(VcrossAxis).Normalized();
+
+
 	Plane plane(N, center);
 
-	Line3D R = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
+	Line3D ray = MouseToRay(camModelMatrix, camFov, aspect, normalizedMousePos);
 
-	vec3 intersectionWorld;
-	if (LineIntersectPlane(intersectionWorld, plane, R))
+	if (LineIntersectPlane(worldOut, plane, ray))
 	{
-	   //qDebug() <<"intersection x:" << vec3ToString(i);
-
-	   vec2 I = NdcToScreen(WorldToNdc(intersectionWorld, camViewProj), w, h);
 	   vec2 A = NdcToScreen(WorldToNdc(center, camViewProj), w, h);
+
+	   float distToCenter = DistanceTo(camViewProj, selectionWorldTransform);
 	   vec4 axisEndpointLocal = vec4(AxesEndpoints[(int)type] * axisWorldSize(h, distToCenter));
 	   vec4 axisEndpointWorld = selectionWorldTransform * axisEndpointLocal;
-	   vec2 Bndc = WorldToNdc((vec3&)axisEndpointWorld, camViewProj);
-	   vec2 B = NdcToScreen(Bndc, w, h);
+	   vec2 B = NdcToScreen(WorldToNdc((vec3&)axisEndpointWorld, camViewProj), w, h);
+
+	   vec2 I = NdcToScreen(WorldToNdc(worldOut, camViewProj), w, h);
 
 	   distance = PointToSegmentDistance(A, B, I);
-	   worldOut = intersectionWorld;
 	   return;
-	   //qDebug() << "mouse ndc:" << vec2ToString(normalizedMousePos * 2.0f - vec2(1,1)) << " p1Ndc:" << vec2ToString(p1Ndc) << " dist:" << dist;
 	}
 
 	distance = MaxDistanceInPixels;
@@ -186,7 +177,7 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 			vec3 intersectionWorld;
 			float intersectionDistance;
 
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, movesAlongLine.direction, underMouse, intersectionWorld, intersectionDistance);
+			intersectMouseWithAxis(pCamera, screen, normalizedMousePos, movesAlongLine.direction, underMouse, intersectionWorld, intersectionDistance);
 
 			if (intersectionDistance < MaxDistanceInPixels)
 			{
@@ -210,20 +201,19 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 		for (int i = 0; i < 3; i++)
 		{
-			vec3 itscWorld;
-			vec3 itscDeltaToCenter;
-			float itscDistance;
+			vec3 intersectionWorld;
+			float intersectionDistance;
 
-			intersectMouseWithAxisPlane(pCamera, screen, normalizedMousePos, axesWorldDirection[i], (AXIS_EL)i, itscWorld, itscDistance);
+			intersectMouseWithAxis(pCamera, screen, normalizedMousePos, axesWorldDirection[i], (AXIS_EL)i, intersectionWorld, intersectionDistance);
 
-			if (itscDistance < SelectionThresholdInPixels && itscDistance < minDist)
+			if (intersectionDistance < SelectionThresholdInPixels && intersectionDistance < minDist)
 			{
-				minDist = itscDistance;
+				minDist = intersectionDistance;
 
 				underMouse = static_cast<AXIS_EL>(i);
 
 				Line3D axisLine = Line3D(axesWorldDirection[i], center);
-				vec3 projectedToAxisLinePoint = axisLine.projectPoint(itscWorld);
+				vec3 projectedToAxisLinePoint = axisLine.projectPoint(intersectionWorld);
 				worldDelta = projectedToAxisLinePoint - center;
 			}
 		}

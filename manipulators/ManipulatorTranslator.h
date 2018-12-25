@@ -34,7 +34,7 @@ class ManipulatorTranslator : public ManipulatorBase
 	mat4 yzMirroringMat = mat4(1.0f);
 	mat4 zxMirroringMat = mat4(1.0f);
 
-	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS_EL type, vec3& worldOut, float& distance);
+	void intersectMouseWithAxis(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS_EL type, vec3& worldOut, float& distance);
 
 public:
 	ManipulatorTranslator(RENDER_MASTER::ICore *pCore);
