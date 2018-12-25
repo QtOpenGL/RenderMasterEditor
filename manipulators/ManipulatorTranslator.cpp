@@ -123,10 +123,17 @@ void ManipulatorTranslator::mouseButtonDown(ICamera *pCamera, const QRect &scree
 	if (AXIS_EL::NONE < underMouse && underMouse <= AXIS_EL::Z)
 	{
 		isMoving = 1;
+
 		mat4 selectionWorldTransform = editor->GetSelectionTransform();
 		vec3 worldDirection = selectionWorldTransform.Column3((int)underMouse).Normalized();
 		vec3 center = selectionWorldTransform.Column3(3);
 		movesAlongLine = Line3D(worldDirection, center);
+	}
+	else if (AXIS_EL::XY <= underMouse && underMouse <= AXIS_EL::ZX)
+	{
+		isMoving = 2;
+
+
 	}
 }
 
@@ -167,8 +174,8 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 	mat4 invSelectionWorldTransform = selectionWorldTransform.Inverse();
 	vec3 center = selectionWorldTransform.Column3(3);
 
-	// we move manipulator by mouse
-	if (isMoving)
+
+	if (isMoving == 1) // we move manipulator arrow by mouse
 	{
 		if (!oldNormalizedMousePos.Aproximately(normalizedMousePos))
 		{
@@ -186,6 +193,9 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 				editor->GetSelectionObject()->SetPosition(&pos);
 			}
 		}
+
+	} else if (isMoving == 2) // we move manipulator plane by mouse
+	{
 
 	} else
 	{
@@ -253,8 +263,6 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 				}
 			}
 		}
-
-		//qDebug() << vec2ToString(ndcMouse)<< vec2ToString(ndc[0])<< vec2ToString(ndc[1])<< vec2ToString(ndc[2]);
 	}
 
 

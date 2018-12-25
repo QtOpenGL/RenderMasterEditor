@@ -15,18 +15,20 @@ enum class AXIS_EL
 	ZX
 };
 
+
 class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
 
 	// state
-	int isMoving = 0;
+	int isMoving = 0; // 1 - moving axis, 2 - moving axis plane
 	AXIS_EL underMouse = AXIS_EL::NONE;
 	vec2 oldNormalizedMousePos;
 
 	// moving state
 	AXIS_EL movingAxis = AXIS_EL::NONE;
 	Line3D movesAlongLine;
+	Plane movesAlongPlane = Plane(vec3(0, 0, 1), vec3());
 	vec3 worldDelta;
 
 	// axis plane
