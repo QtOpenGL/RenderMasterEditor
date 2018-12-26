@@ -308,16 +308,19 @@ void ManipulatorTranslator::update(ICamera *pCamera, const QRect &screen, const 
 
 
 	// Project camera position to "axis space"
-	vec3 cameraPos;
-	pCamera->GetPosition(&cameraPos);
-	vec4 camPos_axesSpace = invSelectionWorldTransform * vec4(cameraPos);
+	if (isMoving != 2)
+	{
+		vec3 cameraPos;
+		pCamera->GetPosition(&cameraPos);
+		vec4 camPos_axesSpace = invSelectionWorldTransform * vec4(cameraPos);
 
-	xyMirroringMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
-	xyMirroringMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
-	yzMirroringMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
-	yzMirroringMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
-	zxMirroringMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
-	zxMirroringMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+		xyMirroringMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
+		xyMirroringMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
+		yzMirroringMat.el_2D[1][1] = camPos_axesSpace.y > 0 ? 1.0f : -1.0f;
+		yzMirroringMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+		zxMirroringMat.el_2D[0][0] = camPos_axesSpace.x > 0 ? 1.0f : -1.0f;
+		zxMirroringMat.el_2D[2][2] = camPos_axesSpace.z > 0 ? 1.0f : -1.0f;
+	}
 }
 
 void ManipulatorTranslator::render(RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender)
