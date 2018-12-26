@@ -21,6 +21,15 @@ ManipulatorBase::ManipulatorBase(RENDER_MASTER::ICore *pCore)
 	pResMan->LoadMesh(&_pGrid, "std#grid");
 	_pGrid->AddRef();
 
+	pResMan->LoadMesh(&_pQuadLines, "std#quad_lines");
+	_pQuadLines->AddRef();
+
+	pResMan->LoadMesh(&_pQuad, "std#plane");
+	_pQuad->AddRef();
+
+	pResMan->LoadMesh(&_pPlane, "std#plane");
+	_pPlane->AddRef();
+
 	connect(eng, &EngineGlobal::EngineBeforeClose, this, &ManipulatorBase::onEngineClosed, Qt::DirectConnection);
 }
 
@@ -42,6 +51,24 @@ void ManipulatorBase::_free()
 	{
 		_pGrid->Release();
 		_pGrid = nullptr;
+	}
+
+	if (_pQuadLines)
+	{
+		_pQuadLines->Release();
+		_pQuadLines = nullptr;
+	}
+
+	if (_pQuad)
+	{
+		_pQuad->Release();
+		_pQuad = nullptr;
+	}
+
+	if (_pPlane)
+	{
+		_pPlane->Release();
+		_pPlane = nullptr;
 	}
 }
 

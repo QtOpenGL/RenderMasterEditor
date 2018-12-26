@@ -4,34 +4,42 @@
 #include "ManipulatorBase.h"
 
 
-enum class AXIS
+enum class AXIS_EL
 {
 	NONE = -1,
 	X,
 	Y,
-	Z
+	Z,
+	XY,
+	YZ,
+	ZX
 };
+
 
 class ManipulatorTranslator : public ManipulatorBase
 {
 	Q_OBJECT
 
-	AXIS mouseHoverAxis = AXIS::NONE;
-	vec3 delta;
-	int isMoving = 0;
+	// state
+	int isMoving = 0; // 1 - moving axis, 2 - moving axis plane
+	AXIS_EL underMouse = AXIS_EL::NONE;
+	vec2 oldNormalizedMousePos;
 
-	// not moving
+	// moving state
+	AXIS_EL movingAxis = AXIS_EL::NONE;
+	Line3D movesAlongLine;
+	Plane movesAlongPlane = Plane(vec3(0, 0, 1), vec3());
 	vec3 worldDelta;
 
-	// moving
-	AXIS axisMoving = AXIS::NONE;
-	Line3D lineAlongMoving;
-	vec2 lastNormalizedMousePos;
+	// axis plane
+	mat4 xyMirroringMat = mat4(1.0f);
+	mat4 yzMirroringMat = mat4(1.0f);
+	mat4 zxMirroringMat = mat4(1.0f);
 
-	void intersectMouseWithAxisPlane(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS type, vec3& worldOut, float& distance);
+	void intersectMouseWithAxis(RENDER_MASTER::ICamera *pCamera, const QRect &screen, const vec2 &normalizedMousePos, const vec3& axisWorldSpace, AXIS_EL type, vec3& worldOut, float& distance);
 
 public:
-	ManipulatorTranslator(RENDER_MASTER::ICore *pCore) : ManipulatorBase(pCore) {}
+	ManipulatorTranslator(RENDER_MASTER::ICore *pCore);
 	virtual ~ManipulatorTranslator();
 
 	// IManipulator interface

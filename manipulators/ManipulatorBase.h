@@ -15,6 +15,9 @@ protected:
 	RENDER_MASTER::IMesh *_pAxesMesh = nullptr;
 	RENDER_MASTER::IMesh *_pAxesArrowMesh = nullptr;
 	RENDER_MASTER::IMesh *_pGrid = nullptr;
+	RENDER_MASTER::IMesh *_pQuadLines = nullptr;
+	RENDER_MASTER::IMesh *_pQuad = nullptr;
+	RENDER_MASTER::IMesh *_pPlane = nullptr;
 
 	void _free();
 	void _drawPlane(const Plane& plane, RENDER_MASTER::ICamera *pCamera, const QRect& screen, RENDER_MASTER::IRender *pRender, RENDER_MASTER::ICoreRender *pCoreRender);
